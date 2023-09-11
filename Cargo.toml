@@ -1,0 +1,51 @@
+[package]
+name = "namada-faucet"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = { version = "0.6.20", features = ["tower-log"] }
+tokio = { version = "1.0", features = ["full"] }
+tower = { version = "0.4", features = [
+    "util",
+    "timeout",
+    "load-shed",
+    "limit",
+    "buffer",
+] }
+tower-http = { version = "0.4.4", features = [
+    "compression-full",
+    "limit",
+    "trace",
+    "cors",
+] }
+tower-layer = "0.3.2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+serde = { version = "1.0.138", features = ["derive"] }
+serde_json = "1.0"
+clap = { version = "4.4.2", features = ["derive", "env"] }
+lazy_static = "1.4.0"
+anyhow = "1.0.75"
+thiserror = "1.0.48"
+validator = { version = "0.16.0", features = ["derive"] }
+async-trait = "0.1.73"
+chrono = { version = "0.4.30", features = ["serde"] }
+rand = "0.8.5"
+rand_chacha = "0.3.1"
+dotenvy = "0.15.7"
+hex = "0.4.3"
+namada = { git = "https://github.com/anoma/namada", version = "0.22.0", default-features = false, features = ["abciplus", "namada-sdk"] }
+borsh = "0.9.4"
+orion = "0.17.5"
+data-encoding = "2.4.0"
+reqwest = "0.11.20"
+zeroize = "1.6.0"
+masp_primitives = { git = "https://github.com/anoma/masp", rev = "50acc5028fbcd52a05970fe7991c7850ab04358e" }
+masp_proofs = { git = "https://github.com/anoma/masp", rev = "50acc5028fbcd52a05970fe7991c7850ab04358e", default-features = false, features = ["local-prover"] }
+axum-macros = "0.3.8"
+
+[patch.crates-io]
+borsh = {git = "https://github.com/heliaxdev/borsh-rs.git", rev = "cd5223e5103c4f139e0c54cf8259b7ec5ec4073a"}
