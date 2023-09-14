@@ -50,3 +50,15 @@ axum-macros = "0.3.8"
 
 [patch.crates-io]
 borsh = {git = "https://github.com/heliaxdev/borsh-rs.git", rev = "cd5223e5103c4f139e0c54cf8259b7ec5ec4073a"}
+
+[profile.ephemeral-build]
+inherits = "release"
+incremental = false
+lto = "thin"
+opt-level = 2
+codegen-units = 64
+strip = "symbols"
+debug = false
+
+[profile.release]
+incremental = false

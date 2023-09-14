@@ -11,6 +11,7 @@ impl SdkWallet {
     pub fn new() -> Self {
         let store = Store::default();
         let wallet = Wallet::new(PathBuf::new(), store);
+        wallet.insert_keypair(alias, keypair, pkh, force_alias)
         Self {
             wallet
         }
