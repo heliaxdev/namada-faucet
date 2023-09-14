@@ -15,15 +15,15 @@ impl Default for SdkShieldedCtx {
 }
 
 #[derive(Clone, BorshDeserialize, BorshSerialize)]
-pub struct SdkShieldedUtils { }
+pub struct SdkShieldedUtils {}
 
 impl Default for SdkShieldedUtils {
     fn default() -> Self {
-        Self { }
+        Self {}
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl ShieldedUtils for SdkShieldedUtils {
     fn local_tx_prover(&self) -> LocalTxProver {
         panic!();

@@ -7,22 +7,28 @@ use reqwest::{Client, Response as ClientResponse};
 #[derive(Clone)]
 pub struct SdkClient {
     url: String,
-    client: Client
+    client: Client,
 }
 
 impl SdkClient {
     pub fn new(url: String) -> Self {
-        Self { client: Client::new(), url }
+        Self {
+            client: Client::new(),
+            url,
+        }
     }
 
     pub async fn post(&self, body: String) -> Result<ClientResponse, reqwest::Error> {
-        self.client.post(format!("http://{}", &self.url)).body(body).send().await
+        self.client
+            .post(format!("http://{}", &self.url))
+            .body(body)
+            .send()
+            .await
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl ClientTrait for SdkClient {
-
     type Error = Error;
 
     async fn request(
