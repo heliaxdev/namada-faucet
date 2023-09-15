@@ -70,11 +70,11 @@ pub async fn request_transfer(
     let nam_address = state.nam_address.clone();
 
     let owner = Address::from(&sk.to_public());
-    let tx_args = locked_sdk.default_args(chain_id, vec![sk], None, nam_address.clone());
+    let tx_args = locked_sdk.default_args(chain_id, vec![sk.clone()], Some(sk), nam_address.clone());
     let signing_data = locked_sdk.compute_signing_data(Some(owner.clone()), None, &tx_args).await;
     let tx_data = locked_sdk.build_transfer_args(owner, target_address, token_address, payload.transfer.amount, nam_address, tx_args.clone());
     let mut tx = locked_sdk.build_transfer_tx(tx_data, signing_data.fee_payer.clone()).await;
-    locked_sdk.sign_tx(&mut tx, signing_data, &tx_args);
+    let gian = locked_sdk.sign_tx(&mut tx, signing_data, &tx_args);
     let process_tx_response = locked_sdk.process_tx(tx, &tx_args).await;
     drop(locked_sdk);
 

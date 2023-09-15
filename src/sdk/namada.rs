@@ -26,10 +26,10 @@ pub struct NamadaSdk {
 }
 
 impl NamadaSdk {
-    pub fn new(url: String) -> Self {
+    pub fn new(url: String, sk: SecretKey) -> Self {
         Self {
             http_client: SdkClient::new(url),
-            wallet: SdkWallet::new(),
+            wallet: SdkWallet::new(sk),
             shielded_ctx: SdkShieldedCtx::default(),
         }
     }
@@ -52,7 +52,7 @@ impl NamadaSdk {
             wallet_alias_force: false,
             wrapper_fee_payer: fee_payer,
             fee_amount: Some(InputAmount::Validated(token::DenominatedAmount {
-                amount: token::Amount::default(),
+                amount: token::Amount::from_u64(0),
                 denom: NATIVE_MAX_DECIMAL_PLACES.into(),
             })),
             fee_token: fee_token,
@@ -88,7 +88,7 @@ impl NamadaSdk {
     }
 
     pub fn sign_tx(&mut self, tx: &mut Tx, signing_data: SigningTxData, args: &args::Tx) {
-        signing::sign_tx(&mut self.wallet.wallet, args, tx, signing_data);
+        signing::sign_tx(&mut self.wallet.wallet, args, tx, signing_data).unwrap();
     }
 
     pub async fn process_tx(&mut self, tx: Tx, args: &args::Tx) -> ProcessTxResponse {

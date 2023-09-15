@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use namada::ledger::wallet::{alias::Alias, ConfirmationResponse, GenRestoreKeyError, WalletUtils, Store, Wallet};
+use namada::{ledger::wallet::{alias::Alias, ConfirmationResponse, GenRestoreKeyError, WalletUtils, Store, Wallet, StoredKeypair}, types::key::{common::SecretKey, PublicKeyHash}};
 use rand::rngs::OsRng;
 
 pub struct SdkWallet {
@@ -8,9 +8,13 @@ pub struct SdkWallet {
 }
 
 impl SdkWallet {
-    pub fn new() -> Self {
+    pub fn new(sk: SecretKey) -> Self {
         let store = Store::default();
-        let wallet = Wallet::new(PathBuf::new(), store);
+        let mut wallet = Wallet::new(PathBuf::new(), store);
+        let stored_keypair = StoredKeypair::Raw(sk.clone());
+        let pk_hash = PublicKeyHash::from(&sk.to_public());
+        let alias = "fake_faucet".to_string();
+        wallet.insert_keypair(alias, stored_keypair, pk_hash, true);
         Self {
             wallet
         }

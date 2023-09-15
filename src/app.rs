@@ -54,7 +54,7 @@ impl ApplicationServer {
         let nam_address = config.nam_address.clone();
         let nam_address = str_to_address(&nam_address);
 
-        let sdk = NamadaSdk::new(rpc);
+        let sdk = NamadaSdk::new(rpc, sk.clone());
 
         let routes = {
             let faucet_state = FaucetState::new(&db, sdk, sk, nam_address, auth_key, difficulty, chain_id);
