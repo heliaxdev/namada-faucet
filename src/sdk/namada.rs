@@ -56,7 +56,7 @@ impl NamadaSdk {
                 denom: NATIVE_MAX_DECIMAL_PLACES.into(),
             })),
             fee_token: fee_token,
-            gas_limit: GasLimit::default(),
+            gas_limit: GasLimit::from(20_000),
             expiration: None,
             chain_id: Some(ChainId(chain_id)),
             signing_keys: signing_keys,
