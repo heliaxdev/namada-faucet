@@ -1,20 +1,31 @@
 use std::path::PathBuf;
 
-use namada::ledger::wallet::{alias::Alias, ConfirmationResponse, GenRestoreKeyError, WalletUtils, Store, Wallet};
+use namada::{
+    ledger::wallet::{
+        alias::Alias, ConfirmationResponse, GenRestoreKeyError, Store, StoredKeypair, Wallet,
+        WalletUtils,
+    },
+    types::{
+        address::Address,
+        key::{common::SecretKey, PublicKeyHash},
+    },
+};
 use rand::rngs::OsRng;
 
 pub struct SdkWallet {
-    pub wallet: Wallet<SdkWalletUtils>
+    pub wallet: Wallet<SdkWalletUtils>,
 }
 
 impl SdkWallet {
-    pub fn new() -> Self {
+    pub fn new(sk: SecretKey, nam_address: Address) -> Self {
         let store = Store::default();
-        let wallet = Wallet::new(PathBuf::new(), store);
-        wallet.insert_keypair(alias, keypair, pkh, force_alias)
-        Self {
-            wallet
-        }
+        let mut wallet = Wallet::new(PathBuf::new(), store);
+        let stored_keypair = StoredKeypair::Raw(sk.clone());
+        let pk_hash = PublicKeyHash::from(&sk.to_public());
+        let alias = "my_faucet".to_string();
+        wallet.insert_keypair(alias, stored_keypair, pk_hash, true);
+        wallet.add_address("nam", nam_address, true);
+        Self { wallet }
     }
 }
 

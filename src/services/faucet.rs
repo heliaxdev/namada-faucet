@@ -35,22 +35,24 @@ impl FaucetService {
     }
 
     fn compute_tag(&self, auth_key: &String, challenge: &[u8]) -> Vec<u8> {
-        let key = auth::SecretKey::from_slice(&auth_key.as_bytes()).expect("Should be able to convert key to bytes");
+        let key = auth::SecretKey::from_slice(auth_key.as_bytes())
+            .expect("Should be able to convert key to bytes");
         let tag = auth::authenticate(&key, challenge).expect("Should be able to compute tag");
 
         tag.unprotected_as_bytes().to_vec()
     }
 
     pub fn verify_tag(&self, auth_key: &String, challenge: &String, tag: &String) -> bool {
-        let key = auth::SecretKey::from_slice(&auth_key.as_bytes()).expect("Should be able to convert key to bytes");
-        
+        let key = auth::SecretKey::from_slice(auth_key.as_bytes())
+            .expect("Should be able to convert key to bytes");
+
         let decoded_tag = if let Ok(decoded_tag) = HEXLOWER.decode(tag.as_bytes()) {
             let tag = Tag::from_slice(&decoded_tag);
             match tag {
                 Ok(tag) => {
                     let tag_bytes = tag.unprotected_as_bytes().to_vec();
                     tag_bytes
-                },
+                }
                 Err(_) => return false,
             }
         } else {
@@ -59,7 +61,7 @@ impl FaucetService {
 
         let tag = Tag::from_slice(&decoded_tag).expect("Should be able to convert bytes to tag");
 
-        let decoded_challenge = HEXLOWER.decode(&challenge.as_bytes()).expect("Test");
+        let decoded_challenge = HEXLOWER.decode(challenge.as_bytes()).expect("Test");
 
         auth::authenticate_verify(&tag, &key, &decoded_challenge).is_ok()
     }

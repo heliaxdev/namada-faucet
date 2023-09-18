@@ -17,8 +17,8 @@ RUN cargo build --release
 FROM debian:bullseye-slim
 
 # copy the runtime files
-COPY --from=builder /app/target/release/namada-faucet /app/axum 
+COPY --from=builder /app/target/release/namada-faucet /app/server 
 WORKDIR /app
 
 # start the dart server
-CMD ["./axum"]
+CMD ["./server"]

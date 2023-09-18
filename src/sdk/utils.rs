@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use namada::types::{key::common::SecretKey, address::Address};
+use namada::types::{address::Address, key::common::SecretKey};
 
 pub fn sk_from_str(sk: &str) -> SecretKey {
     SecretKey::from_str(sk).expect("Should be able to decode secret key.")

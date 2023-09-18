@@ -24,7 +24,6 @@ impl IntoResponse for FaucetError {
             FaucetError::InvalidProof => StatusCode::FORBIDDEN,
             FaucetError::DuplicateChallenge => StatusCode::CONFLICT,
             FaucetError::InvalidAddress => StatusCode::BAD_REQUEST,
-            
         };
 
         ApiErrorResponse::send(status_code.as_u16(), Some(self.to_string()))

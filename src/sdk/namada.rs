@@ -5,15 +5,15 @@ use namada::{
         args::{self, InputAmount},
         signing::{self, SigningTxData},
         tx::ProcessTxResponse,
-        rpc
     },
     proto::Tx,
     types::{
         address::Address,
         chain::ChainId,
         key::common::{self, SecretKey},
-        token::{self, NATIVE_MAX_DECIMAL_PLACES, DenominatedAmount},
-        transaction::GasLimit, masp::{TransferSource, TransferTarget},
+        masp::{TransferSource, TransferTarget},
+        token::{self, DenominatedAmount, NATIVE_MAX_DECIMAL_PLACES},
+        transaction::GasLimit,
     },
 };
 
@@ -26,12 +26,20 @@ pub struct NamadaSdk {
 }
 
 impl NamadaSdk {
-    pub fn new(url: String) -> Self {
+    pub fn new(url: String, sk: SecretKey, nam_address: Address) -> Self {
         Self {
             http_client: SdkClient::new(url),
-            wallet: SdkWallet::new(),
+            wallet: SdkWallet::new(sk, nam_address),
             shielded_ctx: SdkShieldedCtx::default(),
         }
+    }
+
+    pub fn get_secret_key(&mut self) -> SecretKey {
+        self.wallet.wallet.find_key("my_faucet", None).unwrap()
+    }
+
+    pub fn get_address(&self, alias: String) -> Address {
+        self.wallet.wallet.find_address(alias).unwrap().clone()
     }
 
     pub fn default_args(
@@ -52,14 +60,14 @@ impl NamadaSdk {
             wallet_alias_force: false,
             wrapper_fee_payer: fee_payer,
             fee_amount: Some(InputAmount::Validated(token::DenominatedAmount {
-                amount: token::Amount::default(),
+                amount: token::Amount::from_u64(0),
                 denom: NATIVE_MAX_DECIMAL_PLACES.into(),
             })),
-            fee_token: fee_token,
+            fee_token,
             gas_limit: GasLimit::default(),
             expiration: None,
             chain_id: Some(ChainId(chain_id)),
-            signing_keys: signing_keys,
+            signing_keys,
             signatures: Vec::default(),
             tx_reveal_code_path: PathBuf::from("tx_reveal_pk.wasm"),
             verification_key: None,
@@ -88,7 +96,7 @@ impl NamadaSdk {
     }
 
     pub fn sign_tx(&mut self, tx: &mut Tx, signing_data: SigningTxData, args: &args::Tx) {
-        signing::sign_tx(&mut self.wallet.wallet, args, tx, signing_data);
+        signing::sign_tx(&mut self.wallet.wallet, args, tx, signing_data).unwrap();
     }
 
     pub async fn process_tx(&mut self, tx: Tx, args: &args::Tx) -> ProcessTxResponse {
@@ -97,7 +105,15 @@ impl NamadaSdk {
             .unwrap()
     }
 
-    pub fn build_transfer_args(&self, source: Address, target: Address, token: Address, amount: u64, native_token: Address, args: args::Tx) -> args::TxTransfer {
+    pub fn build_transfer_args(
+        &self,
+        source: Address,
+        target: Address,
+        token: Address,
+        amount: u64,
+        native_token: Address,
+        args: args::Tx,
+    ) -> args::TxTransfer {
         args::TxTransfer {
             tx: args,
             source: TransferSource::Address(source),
@@ -105,9 +121,9 @@ impl NamadaSdk {
             token,
             amount: InputAmount::Validated(DenominatedAmount {
                 amount: token::Amount::from_u64(amount),
-                denom: NATIVE_MAX_DECIMAL_PLACES.into()
+                denom: NATIVE_MAX_DECIMAL_PLACES.into(),
             }),
-            native_token: native_token,
+            native_token,
             tx_code_path: PathBuf::from("tx_transfer.wasm"),
         }
     }

@@ -2,26 +2,13 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use masp_proofs::prover::LocalTxProver;
 use namada::ledger::masp::{ShieldedContext, ShieldedUtils};
 
+#[derive(Default)]
 pub struct SdkShieldedCtx {
     pub shielded_context: ShieldedContext<SdkShieldedUtils>,
 }
 
-impl Default for SdkShieldedCtx {
-    fn default() -> Self {
-        Self {
-            shielded_context: Default::default(),
-        }
-    }
-}
-
-#[derive(Clone, BorshDeserialize, BorshSerialize)]
+#[derive(Clone, BorshDeserialize, BorshSerialize, Default)]
 pub struct SdkShieldedUtils {}
-
-impl Default for SdkShieldedUtils {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 #[async_trait::async_trait]
 impl ShieldedUtils for SdkShieldedUtils {

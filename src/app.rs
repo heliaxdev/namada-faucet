@@ -20,8 +20,14 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use crate::{handler::faucet as faucet_handler, sdk::{utils::{sk_from_str, str_to_address}, namada::NamadaSdk}};
 use crate::{app_state::AppState, config::AppConfig, state::faucet::FaucetState};
+use crate::{
+    handler::faucet as faucet_handler,
+    sdk::{
+        namada::NamadaSdk,
+        utils::{sk_from_str, str_to_address},
+    },
+};
 
 lazy_static! {
     static ref HTTP_TIMEOUT: u64 = 30;
@@ -54,10 +60,10 @@ impl ApplicationServer {
         let nam_address = config.nam_address.clone();
         let nam_address = str_to_address(&nam_address);
 
-        let sdk = NamadaSdk::new(rpc);
+        let sdk = NamadaSdk::new(rpc, sk.clone(), nam_address);
 
         let routes = {
-            let faucet_state = FaucetState::new(&db, sdk, sk, nam_address, auth_key, difficulty, chain_id);
+            let faucet_state = FaucetState::new(&db, sdk, auth_key, difficulty, chain_id);
 
             Router::new()
                 .route("/faucet", get(faucet_handler::request_challenge))
@@ -78,7 +84,10 @@ impl ApplicationServer {
                 .timeout(Duration::from_secs(*HTTP_TIMEOUT))
                 .layer(cors)
                 .layer(BufferLayer::new(4096))
-                .layer(RateLimitLayer::new(rps.unwrap_or(*REQ_PER_SEC), Duration::from_secs(1)))
+                .layer(RateLimitLayer::new(
+                    rps.unwrap_or(*REQ_PER_SEC),
+                    Duration::from_secs(1),
+                )),
         );
 
         let router = router.fallback(Self::handle_404);
