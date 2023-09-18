@@ -74,7 +74,7 @@ impl ClientTrait for SdkClient {
         match response {
             Ok(response) => {
                 let response_json = response.text().await.unwrap();
-                R::Response::from_string(&response_json)
+                R::Response::from_string(response_json)
             }
             Err(e) => {
                 let error_msg = e.to_string();

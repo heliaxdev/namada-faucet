@@ -22,10 +22,10 @@ pub struct AppConfig {
     pub chain_id: String,
 
     #[clap(long, env)]
-    pub rpc: String, 
+    pub rpc: String,
 
     #[clap(long, env)]
-    pub nam_address: String,   
+    pub nam_address: String,
 
     #[clap(long, env)]
     pub auth_key: Option<String>,

@@ -1,14 +1,12 @@
-use std::sync::{Arc, RwLock};
-
 use axum::{extract::State, Json};
 use axum_macros::debug_handler;
-use namada::{types::address::Address, tendermint::abci::Code};
+use namada::{tendermint::abci::Code, types::address::Address};
 
 use crate::{
     dto::faucet::{FaucetRequestDto, FaucetResponseDto, FaucetResponseStatusDto},
     error::{api::ApiError, faucet::FaucetError, validate::ValidatedRequest},
     repository::faucet::FaucetRepositoryTrait,
-    state::faucet::FaucetState, sdk::namada::NamadaSdk,
+    state::faucet::FaucetState,
 };
 
 pub async fn request_challenge(
@@ -35,13 +33,13 @@ pub async fn request_transfer(
     let token_address = if let Ok(address) = token_address {
         address
     } else {
-        return Err(FaucetError::InvalidAddress.into())
+        return Err(FaucetError::InvalidAddress.into());
     };
     let target_address = Address::decode(payload.transfer.target.clone());
     let target_address = if let Ok(address) = target_address {
         address
     } else {
-        return Err(FaucetError::InvalidAddress.into())
+        return Err(FaucetError::InvalidAddress.into());
     };
 
     if state.faucet_repo.contains(&payload.challenge) {
@@ -66,14 +64,25 @@ pub async fn request_transfer(
 
     let mut locked_sdk = state.sdk.lock().await;
 
-    let sk = state.sk.clone();
-    let nam_address = state.nam_address.clone();
+    let sk = locked_sdk.get_secret_key();
+    let nam_address = locked_sdk.get_address("nam".to_string());
 
     let owner = Address::from(&sk.to_public());
     let tx_args = locked_sdk.default_args(chain_id, vec![sk], None, nam_address.clone());
-    let signing_data = locked_sdk.compute_signing_data(Some(owner.clone()), None, &tx_args).await;
-    let tx_data = locked_sdk.build_transfer_args(owner, target_address, token_address, payload.transfer.amount, nam_address, tx_args.clone());
-    let mut tx = locked_sdk.build_transfer_tx(tx_data, signing_data.fee_payer.clone()).await;
+    let signing_data = locked_sdk
+        .compute_signing_data(Some(owner.clone()), None, &tx_args)
+        .await;
+    let tx_data = locked_sdk.build_transfer_args(
+        owner,
+        target_address,
+        token_address,
+        payload.transfer.amount,
+        nam_address,
+        tx_args.clone(),
+    );
+    let mut tx = locked_sdk
+        .build_transfer_tx(tx_data, signing_data.fee_payer.clone())
+        .await;
     locked_sdk.sign_tx(&mut tx, signing_data, &tx_args);
     let process_tx_response = locked_sdk.process_tx(tx, &tx_args).await;
     drop(locked_sdk);
@@ -81,7 +90,7 @@ pub async fn request_transfer(
     let transfer_result = match process_tx_response {
         namada::ledger::tx::ProcessTxResponse::Applied(r) => r.code.eq(&"0"),
         namada::ledger::tx::ProcessTxResponse::Broadcast(r) => r.code.eq(&Code::Ok),
-        _ => false
+        _ => false,
     };
 
     if transfer_result {
@@ -90,7 +99,7 @@ pub async fn request_transfer(
 
     let response = FaucetResponseStatusDto {
         token: payload.transfer.token.clone(),
-        amount: payload.transfer.amount.clone(),
+        amount: payload.transfer.amount,
         target: payload.transfer.target.clone(),
         sent: transfer_result,
     };

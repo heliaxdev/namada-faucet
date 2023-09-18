@@ -12,8 +12,7 @@ pub struct FaucetRequestDto {
     pub challenge: String,
     #[validate(length(equal = 64, message = "Invalid proof"))]
     pub tag: String,
-    pub transfer: Transfer
-
+    pub transfer: Transfer,
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate)]
