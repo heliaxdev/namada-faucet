@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use namada::{
-    ledger::wallet::{
+    sdk::wallet::{
         alias::Alias, ConfirmationResponse, GenRestoreKeyError, Store, StoredKeypair, Wallet,
         WalletUtils,
     },
@@ -59,7 +59,7 @@ impl WalletUtils for SdkWalletUtils {
     fn show_overwrite_confirmation(
         _alias: &Alias,
         _alias_for: &str,
-    ) -> namada::ledger::wallet::store::ConfirmationResponse {
+    ) -> namada::sdk::wallet::store::ConfirmationResponse {
         // Automatically replace aliases in non-interactive mode
         ConfirmationResponse::Replace
     }

@@ -1,7 +1,7 @@
 from requests import get, post
 from hashlib import sha256
 
-URL = "http://0.0.0.0:5000/api/v1/faucet"
+URL = "http://0.0.0.0:5001/api/v1/faucet"
 
 def request_challenge():
     return get(URL).json()
@@ -38,7 +38,7 @@ response = request_transfer({
     'tag': response['tag'],
     'challenge': response['challenge'],
     'transfer': {
-        'target': 'atest1v4ehgw36g4rrsw2pxezyzsfjx3zrv3f4gfzrvdf5g3pnydf4gcm5vs3jgfprzs33g9zrgdfsp7hful',
+        'target': 'atest1d9khqw36x4pr2sfkgv6njv2rxuunjvpsxfzr2w29x5crxvfhxsurwdpn8qm5yd2xgverj3336str0x',
         'token': 'atest1v4ehgw36x3prswzxggunzv6pxqmnvdj9xvcyzvpsggeyvs3cg9qnywf589qnwvfsg5erg3fkl09rg5',
         'amount': 100
     }

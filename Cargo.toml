@@ -38,7 +38,7 @@ rand_chacha = "0.3.1"
 dotenvy = "0.15.7"
 hex = "0.4.3"
 # TODO: set back to a specific version of Namada when the PR is merged
-namada = { git = "https://github.com/anoma/namada", branch = "grarco/sdk-async-traits-send", default-features = false, features = ["abciplus", "namada-sdk"] }
+namada = { git = "https://github.com/anoma/namada", rev = "8635da4f742e983cf5caa00a2825c03660345957", default-features = false, features = ["abciplus", "namada-sdk"] }
 borsh = "0.9.4"
 orion = "0.17.5"
 data-encoding = "2.4.0"

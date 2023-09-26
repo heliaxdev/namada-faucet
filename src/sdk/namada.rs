@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use namada::{
-    ledger::{
+    sdk::{
         args::{self, InputAmount},
         signing::{self, SigningTxData},
         tx::ProcessTxResponse,
@@ -100,7 +100,7 @@ impl NamadaSdk {
     }
 
     pub async fn process_tx(&mut self, tx: Tx, args: &args::Tx) -> ProcessTxResponse {
-        namada::ledger::tx::process_tx(&self.http_client, &mut self.wallet.wallet, args, tx)
+        namada::sdk::tx::process_tx(&self.http_client, &mut self.wallet.wallet, args, tx)
             .await
             .unwrap()
     }
@@ -133,7 +133,7 @@ impl NamadaSdk {
         args: args::TxTransfer,
         fee_payer: common::PublicKey,
     ) -> Tx {
-        let (tx, _) = namada::ledger::tx::build_transfer(
+        let (tx, _) = namada::sdk::tx::build_transfer(
             &self.http_client,
             &mut self.wallet.wallet,
             &mut self.shielded_ctx.shielded_context,
