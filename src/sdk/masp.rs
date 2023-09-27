@@ -1,6 +1,6 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use masp_proofs::prover::LocalTxProver;
-use namada::ledger::masp::{ShieldedContext, ShieldedUtils};
+use namada::sdk::masp::{ShieldedContext, ShieldedUtils};
 
 #[derive(Default)]
 pub struct SdkShieldedCtx {

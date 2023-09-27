@@ -88,8 +88,8 @@ pub async fn request_transfer(
     drop(locked_sdk);
 
     let transfer_result = match process_tx_response {
-        namada::ledger::tx::ProcessTxResponse::Applied(r) => r.code.eq(&"0"),
-        namada::ledger::tx::ProcessTxResponse::Broadcast(r) => r.code.eq(&Code::Ok),
+        namada::sdk::tx::ProcessTxResponse::Applied(r) => r.code.eq(&"0"),
+        namada::sdk::tx::ProcessTxResponse::Broadcast(r) => r.code.eq(&Code::Ok),
         _ => false,
     };
 
