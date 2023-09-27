@@ -21,7 +21,7 @@ pub struct Transfer {
     pub token: String,
     #[validate(length(min = 1, max = 50, message = "Invalid target address"))]
     pub target: String,
-    #[validate(range(min = 1, max = 1000))]
+    #[validate(range(min = 1, max = 1_000_000_000))]
     pub amount: u64,
 }
 

@@ -38,9 +38,9 @@ response = request_transfer({
     'tag': response['tag'],
     'challenge': response['challenge'],
     'transfer': {
-        'target': 'atest1d9khqw36x4pr2sfkgv6njv2rxuunjvpsxfzr2w29x5crxvfhxsurwdpn8qm5yd2xgverj3336str0x',
+        'target': 'atest1d9khqw36gscrxdenggu5yw2ygsc5zwf3g9p5gde3xgc5z335gs6rjvpnx5erw33s8yuyxwfhu3xktm',
         'token': 'atest1v4ehgw36x3prswzxggunzv6pxqmnvdj9xvcyzvpsggeyvs3cg9qnywf589qnwvfsg5erg3fkl09rg5',
-        'amount': 100
+        'amount': 100 * 10**6
     }
 })
 

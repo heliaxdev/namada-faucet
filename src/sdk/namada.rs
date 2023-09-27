@@ -13,7 +13,7 @@ use namada::{
         key::common::{self, SecretKey},
         masp::{TransferSource, TransferTarget},
         token::{self, DenominatedAmount, NATIVE_MAX_DECIMAL_PLACES},
-        transaction::GasLimit,
+        transaction::GasLimit, io::DefaultIo,
     },
 };
 
@@ -84,11 +84,11 @@ impl NamadaSdk {
         default_signer: Option<Address>,
         args: &args::Tx,
     ) -> SigningTxData {
-        signing::aux_signing_data(
+        signing::aux_signing_data::<_, _, DefaultIo>(
             &self.http_client,
             &mut self.wallet.wallet,
             args,
-            &owner,
+            owner,
             default_signer,
         )
         .await
@@ -100,7 +100,7 @@ impl NamadaSdk {
     }
 
     pub async fn process_tx(&mut self, tx: Tx, args: &args::Tx) -> ProcessTxResponse {
-        namada::sdk::tx::process_tx(&self.http_client, &mut self.wallet.wallet, args, tx)
+        namada::sdk::tx::process_tx::<_,_,DefaultIo>(&self.http_client, &mut self.wallet.wallet, args, tx)
             .await
             .unwrap()
     }
@@ -133,7 +133,7 @@ impl NamadaSdk {
         args: args::TxTransfer,
         fee_payer: common::PublicKey,
     ) -> Tx {
-        let (tx, _) = namada::sdk::tx::build_transfer(
+        let (tx, _) = namada::sdk::tx::build_transfer::<_,_,_,DefaultIo>(
             &self.http_client,
             &mut self.wallet.wallet,
             &mut self.shielded_ctx.shielded_context,
