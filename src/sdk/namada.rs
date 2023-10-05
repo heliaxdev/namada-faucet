@@ -54,7 +54,7 @@ impl NamadaSdk {
             dump_tx: false,
             output_folder: None,
             force: false,
-            broadcast_only: false,
+            broadcast_only: true,
             ledger_address: (),
             initialized_account_alias: None,
             wallet_alias_force: false,
