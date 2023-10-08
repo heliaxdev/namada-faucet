@@ -1,19 +1,20 @@
 use std::path::PathBuf;
 
 use namada::{
+    proto::Tx,
     sdk::{
         args::{self, InputAmount},
         signing::{self, SigningTxData},
         tx::ProcessTxResponse,
     },
-    proto::Tx,
     types::{
         address::Address,
         chain::ChainId,
+        io::DefaultIo,
         key::common::{self, SecretKey},
         masp::{TransferSource, TransferTarget},
         token::{self, DenominatedAmount, NATIVE_MAX_DECIMAL_PLACES},
-        transaction::GasLimit, io::DefaultIo,
+        transaction::GasLimit,
     },
 };
 
@@ -100,12 +101,17 @@ impl NamadaSdk {
     }
 
     pub async fn process_tx(&mut self, tx: Tx, args: &args::Tx) -> ProcessTxResponse {
-        namada::sdk::tx::process_tx::<_,_,DefaultIo>(&self.http_client, &mut self.wallet.wallet, args, tx)
-            .await
-            .unwrap()
+        namada::sdk::tx::process_tx::<_, _, DefaultIo>(
+            &self.http_client,
+            &mut self.wallet.wallet,
+            args,
+            tx,
+        )
+        .await
+        .unwrap()
     }
 
-    pub fn build_transfer_args(
+    pub async fn build_transfer_args(
         &self,
         source: Address,
         target: Address,
@@ -114,15 +120,18 @@ impl NamadaSdk {
         native_token: Address,
         args: args::Tx,
     ) -> args::TxTransfer {
+        let amount = InputAmount::Unvalidated(DenominatedAmount {
+            amount: token::Amount::from_u64(amount),
+            denom: 0.into(),
+        });
+        let denominated_amount =
+            namada::sdk::rpc::validate_amount::<_, DefaultIo>(&self.http_client, amount, &token, true).await.unwrap();
         args::TxTransfer {
             tx: args,
             source: TransferSource::Address(source),
             target: TransferTarget::Address(target),
             token,
-            amount: InputAmount::Validated(DenominatedAmount {
-                amount: token::Amount::from_u64(amount),
-                denom: NATIVE_MAX_DECIMAL_PLACES.into(),
-            }),
+            amount: InputAmount::Validated(denominated_amount),
             native_token,
             tx_code_path: PathBuf::from("tx_transfer.wasm"),
         }
@@ -133,7 +142,7 @@ impl NamadaSdk {
         args: args::TxTransfer,
         fee_payer: common::PublicKey,
     ) -> Tx {
-        let (tx, _) = namada::sdk::tx::build_transfer::<_,_,_,DefaultIo>(
+        let (tx, _) = namada::sdk::tx::build_transfer::<_, _, _, DefaultIo>(
             &self.http_client,
             &mut self.wallet.wallet,
             &mut self.shielded_ctx.shielded_context,

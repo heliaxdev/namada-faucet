@@ -13,7 +13,7 @@ pub struct FaucetState {
     pub sdk: Arc<Mutex<NamadaSdk>>,
     pub auth_key: String,
     pub difficulty: u64,
-    pub chain_id: String,
+    pub webserver_host: String
 }
 
 impl FaucetState {
@@ -22,7 +22,7 @@ impl FaucetState {
         sdk: NamadaSdk,
         auth_key: String,
         difficulty: u64,
-        chain_id: String,
+        webserver_host: String
     ) -> Self {
         Self {
             faucet_service: FaucetService::new(data),
@@ -30,7 +30,7 @@ impl FaucetState {
             sdk: Arc::new(Mutex::new(sdk)),
             auth_key,
             difficulty,
-            chain_id,
+            webserver_host
         }
     }
 }

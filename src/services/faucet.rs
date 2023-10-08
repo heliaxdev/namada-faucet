@@ -27,8 +27,12 @@ impl FaucetService {
         }
     }
 
-    pub async fn generate_faucet_request(&mut self, auth_key: String) -> Result<Faucet, ApiError> {
-        let challenge = self.r.generate();
+    pub async fn generate_faucet_request(
+        &mut self,
+        auth_key: String,
+        chain_id: String,
+    ) -> Result<Faucet, ApiError> {
+        let challenge = self.r.generate(chain_id.as_bytes());
         let tag = self.compute_tag(&auth_key, &challenge);
 
         Ok(Faucet::request(challenge, tag))
@@ -86,10 +90,15 @@ impl Default for RndGen {
 }
 
 impl RndGen {
-    pub fn generate(&mut self) -> Vec<u8> {
+    pub fn generate(&mut self, extra_data: &[u8]) -> Vec<u8> {
         let random_one = self.r.next_u64();
         let random_two = self.r.next_u64();
 
-        [random_one.to_be_bytes(), random_two.to_be_bytes()].concat()
+        [
+            random_one.to_be_bytes().as_slice(),
+            random_two.to_be_bytes().as_slice(),
+            extra_data,
+        ]
+        .concat()
     }
 }

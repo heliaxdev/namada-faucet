@@ -1,33 +1,60 @@
-use axum::{extract::State, Json};
+use axum::{
+    extract::{Path, State},
+    Json,
+};
 use axum_macros::debug_handler;
 use namada::{tendermint::abci::Code, types::address::Address};
 
 use crate::{
-    dto::faucet::{FaucetRequestDto, FaucetResponseDto, FaucetResponseStatusDto},
+    dto::faucet::FaucetRequestDto,
     error::{api::ApiError, faucet::FaucetError, validate::ValidatedRequest},
     repository::faucet::FaucetRepositoryTrait,
+    response::faucet::{FaucetResponse, FaucetResponseStatus},
     state::faucet::FaucetState,
+    utils::requests,
 };
 
+#[debug_handler]
 pub async fn request_challenge(
+    Path(chain_id): Path<String>,
     State(mut state): State<FaucetState>,
-) -> Result<Json<FaucetResponseDto>, ApiError> {
+) -> Result<Json<FaucetResponse>, ApiError> {
     let faucet_request = state
         .faucet_service
-        .generate_faucet_request(state.auth_key)
+        .generate_faucet_request(state.auth_key, chain_id)
         .await?;
-    let response = FaucetResponseDto::from(faucet_request);
+    let response = FaucetResponse::from(faucet_request);
 
     Ok(Json(response))
 }
 
 #[debug_handler]
+pub async fn get_faucet_info(
+    Path(_chain_id): Path<String>,
+    State(state): State<FaucetState>,
+) -> Result<(), ApiError> {
+    let webserver_host = state.webserver_host.clone();
+    let _networks = requests::list_networks(&webserver_host)
+        .await
+        .map_err(|_e| FaucetError::InvalidWebserver)?;
+
+    let _locked_sdk = state.sdk.lock().await;
+
+    Ok(())
+}
+
+#[debug_handler]
+pub async fn get_all_faucets_info(State(_state): State<FaucetState>) -> Result<(), ApiError> {
+    Ok(())
+}
+
+#[debug_handler]
 pub async fn request_transfer(
     State(mut state): State<FaucetState>,
+    Path(chain_id): Path<String>,
     ValidatedRequest(payload): ValidatedRequest<FaucetRequestDto>,
-) -> Result<Json<FaucetResponseStatusDto>, ApiError> {
+) -> Result<Json<FaucetResponseStatus>, ApiError> {
     let auth_key: String = state.auth_key.clone();
-    let chain_id = state.chain_id.clone();
 
     let token_address = Address::decode(payload.transfer.token.clone());
     let token_address = if let Ok(address) = token_address {
@@ -72,14 +99,16 @@ pub async fn request_transfer(
     let signing_data = locked_sdk
         .compute_signing_data(Some(owner.clone()), None, &tx_args)
         .await;
-    let tx_data = locked_sdk.build_transfer_args(
-        owner,
-        target_address,
-        token_address,
-        payload.transfer.amount,
-        nam_address,
-        tx_args.clone(),
-    );
+    let tx_data = locked_sdk
+        .build_transfer_args(
+            owner,
+            target_address,
+            token_address,
+            payload.transfer.amount,
+            nam_address,
+            tx_args.clone(),
+        )
+        .await;
     let mut tx = locked_sdk
         .build_transfer_tx(tx_data, signing_data.fee_payer.clone())
         .await;
@@ -97,7 +126,7 @@ pub async fn request_transfer(
         state.faucet_repo.add(payload.challenge.clone());
     }
 
-    let response = FaucetResponseStatusDto {
+    let response = FaucetResponseStatus {
         token: payload.transfer.token.clone(),
         amount: payload.transfer.amount,
         target: payload.transfer.target.clone(),

@@ -1,8 +1,8 @@
-use data_encoding::HEXLOWER;
+
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use crate::entity::faucet::Faucet;
+
 
 #[derive(Clone, Serialize, Deserialize, Validate)]
 pub struct FaucetRequestDto {
@@ -23,27 +23,4 @@ pub struct Transfer {
     pub target: String,
     #[validate(range(min = 1, max = 1_000_000_000))]
     pub amount: u64,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct FaucetResponseDto {
-    pub challenge: String,
-    pub tag: String,
-}
-
-impl From<Faucet> for FaucetResponseDto {
-    fn from(value: Faucet) -> Self {
-        Self {
-            challenge: HEXLOWER.encode(&value.challenge),
-            tag: HEXLOWER.encode(&value.tag),
-        }
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct FaucetResponseStatusDto {
-    pub token: String,
-    pub amount: u64,
-    pub target: String,
-    pub sent: bool,
 }

@@ -51,8 +51,8 @@ impl ApplicationServer {
 
         let difficulty = config.difficulty;
         let rps = config.rps;
-        let chain_id = config.chain_id.clone();
         let rpc = config.rpc.clone();
+        let webserver_host = config.webserver_host.clone();
 
         let sk = config.private_key.clone();
         let sk = sk_from_str(&sk);
@@ -63,11 +63,13 @@ impl ApplicationServer {
         let sdk = NamadaSdk::new(rpc, sk.clone(), nam_address);
 
         let routes = {
-            let faucet_state = FaucetState::new(&db, sdk, auth_key, difficulty, chain_id);
+            let faucet_state = FaucetState::new(&db, sdk, auth_key, difficulty, webserver_host);
 
             Router::new()
-                .route("/faucet", get(faucet_handler::request_challenge))
-                .route("/faucet", post(faucet_handler::request_transfer))
+                .route("/faucet/:chain_id/challenge", get(faucet_handler::request_challenge))
+                .route("/faucet/:chain_id/transfer", post(faucet_handler::request_transfer))
+                .route("/faucet/:chain", get(faucet_handler::get_faucet_info))
+                .route("/faucet", get(faucet_handler::get_all_faucets_info))
                 .with_state(faucet_state)
                 .merge(Router::new().route("/health", get(|| async { "Healthy..." })))
         };

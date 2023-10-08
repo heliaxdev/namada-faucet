@@ -15,6 +15,8 @@ pub enum FaucetError {
     DuplicateChallenge,
     #[error("Invalid Address")]
     InvalidAddress,
+    #[error("Can't connect to webserver")]
+    InvalidWebserver,
 }
 
 impl IntoResponse for FaucetError {
@@ -24,6 +26,7 @@ impl IntoResponse for FaucetError {
             FaucetError::InvalidProof => StatusCode::FORBIDDEN,
             FaucetError::DuplicateChallenge => StatusCode::CONFLICT,
             FaucetError::InvalidAddress => StatusCode::BAD_REQUEST,
+            FaucetError::InvalidWebserver => StatusCode::SERVICE_UNAVAILABLE
         };
 
         ApiErrorResponse::send(status_code.as_u16(), Some(self.to_string()))

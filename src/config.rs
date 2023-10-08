@@ -19,8 +19,8 @@ pub struct AppConfig {
     pub private_key: String,
 
     #[clap(long, env)]
-    pub chain_id: String,
-
+    pub webserver_host: String,
+    
     #[clap(long, env)]
     pub rpc: String,
 
