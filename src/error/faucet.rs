@@ -15,6 +15,8 @@ pub enum FaucetError {
     DuplicateChallenge,
     #[error("Invalid Address")]
     InvalidAddress,
+    #[error("Error while sending transfer: {0}")]
+    SdkError(String),
 }
 
 impl IntoResponse for FaucetError {
@@ -24,6 +26,7 @@ impl IntoResponse for FaucetError {
             FaucetError::InvalidProof => StatusCode::FORBIDDEN,
             FaucetError::DuplicateChallenge => StatusCode::CONFLICT,
             FaucetError::InvalidAddress => StatusCode::BAD_REQUEST,
+            FaucetError::SdkError(_) => StatusCode::BAD_REQUEST,
         };
 
         ApiErrorResponse::send(status_code.as_u16(), Some(self.to_string()))
