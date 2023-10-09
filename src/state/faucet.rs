@@ -14,6 +14,7 @@ pub struct FaucetState {
     pub auth_key: String,
     pub difficulty: u64,
     pub chain_id: String,
+    pub chain_start: i64,
 }
 
 impl FaucetState {
@@ -23,6 +24,7 @@ impl FaucetState {
         auth_key: String,
         difficulty: u64,
         chain_id: String,
+        chain_start: i64,
     ) -> Self {
         Self {
             faucet_service: FaucetService::new(data),
@@ -31,6 +33,7 @@ impl FaucetState {
             auth_key,
             difficulty,
             chain_id,
+            chain_start,
         }
     }
 }

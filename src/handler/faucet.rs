@@ -12,6 +12,12 @@ use crate::{
 pub async fn request_challenge(
     State(mut state): State<FaucetState>,
 ) -> Result<Json<FaucetResponseDto>, ApiError> {
+    let current_timestamp = chrono::offset::Utc::now().timestamp();
+
+    if current_timestamp < state.chain_start {
+        return Err(FaucetError::ChainNotStarted.into());
+    }
+
     let faucet_request = state
         .faucet_service
         .generate_faucet_request(state.auth_key)

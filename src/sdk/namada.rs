@@ -1,19 +1,20 @@
 use std::path::PathBuf;
 
 use namada::{
+    proto::Tx,
     sdk::{
         args::{self, InputAmount},
         signing::{self, SigningTxData},
         tx::ProcessTxResponse,
     },
-    proto::Tx,
     types::{
         address::Address,
         chain::ChainId,
+        io::DefaultIo,
         key::common::{self, SecretKey},
         masp::{TransferSource, TransferTarget},
         token::{self, DenominatedAmount, NATIVE_MAX_DECIMAL_PLACES},
-        transaction::GasLimit, io::DefaultIo,
+        transaction::GasLimit,
     },
 };
 
@@ -100,9 +101,14 @@ impl NamadaSdk {
     }
 
     pub async fn process_tx(&mut self, tx: Tx, args: &args::Tx) -> ProcessTxResponse {
-        namada::sdk::tx::process_tx::<_,_,DefaultIo>(&self.http_client, &mut self.wallet.wallet, args, tx)
-            .await
-            .unwrap()
+        namada::sdk::tx::process_tx::<_, _, DefaultIo>(
+            &self.http_client,
+            &mut self.wallet.wallet,
+            args,
+            tx,
+        )
+        .await
+        .unwrap()
     }
 
     pub fn build_transfer_args(
@@ -133,7 +139,7 @@ impl NamadaSdk {
         args: args::TxTransfer,
         fee_payer: common::PublicKey,
     ) -> Tx {
-        let (tx, _) = namada::sdk::tx::build_transfer::<_,_,_,DefaultIo>(
+        let (tx, _) = namada::sdk::tx::build_transfer::<_, _, _, DefaultIo>(
             &self.http_client,
             &mut self.wallet.wallet,
             &mut self.shielded_ctx.shielded_context,
