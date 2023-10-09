@@ -22,7 +22,7 @@ pub struct AppConfig {
     pub chain_id: String,
 
     #[clap(long, env)]
-    pub rpc: String,
+    pub rpcs: Vec<String>,
 
     #[clap(long, env)]
     pub nam_address: String,

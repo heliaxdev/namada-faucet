@@ -52,7 +52,7 @@ impl ApplicationServer {
         let difficulty = config.difficulty;
         let rps = config.rps;
         let chain_id = config.chain_id.clone();
-        let rpc = config.rpc.clone();
+        let rpcs = config.rpcs.clone();
 
         let sk = config.private_key.clone();
         let sk = sk_from_str(&sk);
@@ -60,7 +60,7 @@ impl ApplicationServer {
         let nam_address = config.nam_address.clone();
         let nam_address = str_to_address(&nam_address);
 
-        let sdk = NamadaSdk::new(rpc, sk.clone(), nam_address);
+        let sdk = NamadaSdk::new(rpcs, sk.clone(), nam_address);
 
         let routes = {
             let faucet_state = FaucetState::new(&db, sdk, auth_key, difficulty, chain_id);

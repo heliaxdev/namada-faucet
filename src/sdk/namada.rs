@@ -1,34 +1,36 @@
+use rand::seq::SliceRandom;
 use std::path::PathBuf;
 
 use namada::{
+    proto::Tx,
     sdk::{
         args::{self, InputAmount},
         signing::{self, SigningTxData},
         tx::ProcessTxResponse,
     },
-    proto::Tx,
     types::{
         address::Address,
         chain::ChainId,
+        io::DefaultIo,
         key::common::{self, SecretKey},
         masp::{TransferSource, TransferTarget},
         token::{self, DenominatedAmount, NATIVE_MAX_DECIMAL_PLACES},
-        transaction::GasLimit, io::DefaultIo,
+        transaction::GasLimit,
     },
 };
 
 use super::{client::SdkClient, masp::SdkShieldedCtx, wallet::SdkWallet};
 
 pub struct NamadaSdk {
-    pub http_client: SdkClient,
+    pub http_clients: Vec<SdkClient>,
     pub wallet: SdkWallet,
     pub shielded_ctx: SdkShieldedCtx,
 }
 
 impl NamadaSdk {
-    pub fn new(url: String, sk: SecretKey, nam_address: Address) -> Self {
+    pub fn new(urls: Vec<String>, sk: SecretKey, nam_address: Address) -> Self {
         Self {
-            http_client: SdkClient::new(url),
+            http_clients: urls.into_iter().map(|url| SdkClient::new(url)).collect(),
             wallet: SdkWallet::new(sk, nam_address),
             shielded_ctx: SdkShieldedCtx::default(),
         }
@@ -85,7 +87,7 @@ impl NamadaSdk {
         args: &args::Tx,
     ) -> SigningTxData {
         signing::aux_signing_data::<_, _, DefaultIo>(
-            &self.http_client,
+            &self._get_client(),
             &mut self.wallet.wallet,
             args,
             owner,
@@ -100,9 +102,14 @@ impl NamadaSdk {
     }
 
     pub async fn process_tx(&mut self, tx: Tx, args: &args::Tx) -> ProcessTxResponse {
-        namada::sdk::tx::process_tx::<_,_,DefaultIo>(&self.http_client, &mut self.wallet.wallet, args, tx)
-            .await
-            .unwrap()
+        namada::sdk::tx::process_tx::<_, _, DefaultIo>(
+            &self._get_client(),
+            &mut self.wallet.wallet,
+            args,
+            tx,
+        )
+        .await
+        .unwrap()
     }
 
     pub fn build_transfer_args(
@@ -133,8 +140,8 @@ impl NamadaSdk {
         args: args::TxTransfer,
         fee_payer: common::PublicKey,
     ) -> Tx {
-        let (tx, _) = namada::sdk::tx::build_transfer::<_,_,_,DefaultIo>(
-            &self.http_client,
+        let (tx, _) = namada::sdk::tx::build_transfer::<_, _, _, DefaultIo>(
+            &self._get_client(),
             &mut self.wallet.wallet,
             &mut self.shielded_ctx.shielded_context,
             args,
@@ -144,5 +151,13 @@ impl NamadaSdk {
         .unwrap();
 
         tx
+    }
+
+    // this is safe to unwrap as self.http_clients has always at least 1 alement
+    fn _get_client(&self) -> SdkClient {
+        self.http_clients
+            .choose(&mut rand::thread_rng())
+            .unwrap()
+            .clone()
     }
 }
