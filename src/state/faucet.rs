@@ -1,26 +1,25 @@
 use crate::{
     app_state::AppState, repository::faucet::FaucetRepository,
-    repository::faucet::FaucetRepositoryTrait, sdk::namada::NamadaSdk,
-    services::faucet::FaucetService,
+    repository::faucet::FaucetRepositoryTrait,
+    services::faucet::FaucetService, sdk::namada::Sdk,
 };
-use std::sync::{Arc, RwLock};
-use tokio::sync::Mutex;
+use std::sync::{Arc, RwLock, Mutex};
 
 #[derive(Clone)]
-pub struct FaucetState {
+pub struct FaucetState<'a> {
     pub faucet_service: FaucetService,
     pub faucet_repo: FaucetRepository,
-    pub sdk: Arc<Mutex<NamadaSdk>>,
+    pub sdk: Arc<Mutex<Sdk<'a>>>,
     pub auth_key: String,
     pub difficulty: u64,
     pub chain_id: String,
     pub chain_start: i64,
 }
 
-impl FaucetState {
+impl<'a> FaucetState<'a> {
     pub fn new(
         data: &Arc<RwLock<AppState>>,
-        sdk: NamadaSdk,
+        sdk: Sdk<'a>,
         auth_key: String,
         difficulty: u64,
         chain_id: String,

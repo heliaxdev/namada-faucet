@@ -1,5 +1,6 @@
 use std::{
     net::{Ipv4Addr, SocketAddr},
+    str::FromStr,
     sync::{Arc, RwLock},
     time::Duration,
 };
@@ -12,22 +13,18 @@ use axum::{
     BoxError, Json, Router,
 };
 use lazy_static::lazy_static;
+use namada_sdk::{io::NullIo, masp::fs::FsShieldedUtils, wallet::fs::FsWalletUtils};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde_json::json;
+use tendermint_rpc::{HttpClient, Url};
 use tower::{buffer::BufferLayer, limit::RateLimitLayer, ServiceBuilder};
 use tower_http::{
     cors::{Any, CorsLayer},
     trace::TraceLayer,
 };
 
-use crate::{app_state::AppState, config::AppConfig, state::faucet::FaucetState};
-use crate::{
-    handler::faucet as faucet_handler,
-    sdk::{
-        namada::NamadaSdk,
-        utils::{sk_from_str, str_to_address},
-    },
-};
+use crate::{app_state::AppState, config::AppConfig, sdk::namada::Sdk, state::faucet::FaucetState};
+use crate::{handler::faucet as faucet_handler, sdk::utils::sk_from_str};
 
 lazy_static! {
     static ref HTTP_TIMEOUT: u64 = 30;
@@ -52,16 +49,32 @@ impl ApplicationServer {
         let difficulty = config.difficulty;
         let rps = config.rps;
         let chain_id = config.chain_id.clone();
-        let rpcs = config.rpcs.clone();
+        let rpcs: Vec<String> = config.rpcs.clone();
         let chain_start = config.chain_start;
 
         let sk = config.private_key.clone();
         let sk = sk_from_str(&sk);
 
-        let nam_address = config.nam_address.clone();
-        let nam_address = str_to_address(&nam_address);
+        let url = Url::from_str(&rpcs.get(0).unwrap()).expect("invalid RPC address");
+        let http_client = HttpClient::new(url).unwrap();
 
-        let sdk = NamadaSdk::new(rpcs, sk.clone(), nam_address);
+        // Setup wallet storage
+        let mut wallet = FsWalletUtils::new("wallet".into());
+
+        // Setup shielded context storage
+        let mut shielded_ctx = FsShieldedUtils::new("masp".into());
+
+        let io = NullIo;
+
+        let sdk = Sdk::new(
+            &chain_id,
+            sk,
+            &http_client,
+            &mut wallet,
+            &mut shielded_ctx,
+            &io,
+        )
+        .await;
 
         let routes = {
             let faucet_state =
