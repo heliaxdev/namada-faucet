@@ -70,27 +70,39 @@ pub async fn request_transfer(
 
     let mut locked_sdk = state.sdk.lock().await;
 
-    let sk = locked_sdk.get_secret_key();
-    let nam_address = locked_sdk.get_address("nam".to_string());
+    let sk = locked_sdk
+        .get_secret_key()
+        .map_err(|e| FaucetError::SdkError(e.to_string()))?;
+    let nam_address = locked_sdk
+        .get_address("nam".to_string())
+        .map_err(|e| FaucetError::SdkError(e.to_string()))?;
 
     let owner = Address::from(&sk.to_public());
     let tx_args = locked_sdk.default_args(chain_id, vec![sk], None, nam_address.clone());
     let signing_data = locked_sdk
         .compute_signing_data(Some(owner.clone()), None, &tx_args)
-        .await;
-    let tx_data = locked_sdk.build_transfer_args(
-        owner,
-        target_address,
-        token_address,
-        payload.transfer.amount,
-        nam_address,
-        tx_args.clone(),
-    );
+        .await
+        .map_err(|e| FaucetError::SdkError(e.to_string()))?;
+    let tx_data = locked_sdk
+        .build_transfer_args(
+            owner,
+            target_address,
+            token_address,
+            payload.transfer.amount,
+            nam_address,
+            tx_args.clone(),
+        )
+        .await
+        .map_err(|e| FaucetError::SdkError(e.to_string()))?;
     let mut tx = locked_sdk
         .build_transfer_tx(tx_data, signing_data.fee_payer.clone())
-        .await;
+        .await
+        .map_err(|e| FaucetError::SdkError(e.to_string()))?;
     locked_sdk.sign_tx(&mut tx, signing_data, &tx_args);
-    let process_tx_response = locked_sdk.process_tx(tx, &tx_args).await;
+    let process_tx_response = locked_sdk
+        .process_tx(tx, &tx_args)
+        .await
+        .map_err(|e| FaucetError::SdkError(e.to_string()))?;
     drop(locked_sdk);
 
     let transfer_result = match process_tx_response {

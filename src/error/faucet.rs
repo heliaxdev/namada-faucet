@@ -17,6 +17,8 @@ pub enum FaucetError {
     InvalidAddress,
     #[error("Chain didn't start yet")]
     ChainNotStarted,
+    #[error("Error while sending transfer: {0}")]
+    SdkError(String),
 }
 
 impl IntoResponse for FaucetError {
@@ -27,6 +29,7 @@ impl IntoResponse for FaucetError {
             FaucetError::DuplicateChallenge => StatusCode::CONFLICT,
             FaucetError::InvalidAddress => StatusCode::BAD_REQUEST,
             FaucetError::ChainNotStarted => StatusCode::BAD_REQUEST,
+            FaucetError::SdkError(_) => StatusCode::BAD_REQUEST,
         };
 
         ApiErrorResponse::send(status_code.as_u16(), Some(self.to_string()))
