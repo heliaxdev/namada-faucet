@@ -1,6 +1,16 @@
 use axum::{extract::State, Json};
 use axum_macros::debug_handler;
-use namada::{tendermint::abci::Code, types::address::Address};
+use namada_sdk::{
+    args::InputAmount,
+    core::types::{
+        address::Address,
+        masp::{TransferSource, TransferTarget},
+    },
+    rpc,
+    signing::default_sign,
+    tendermint::abci::Code,
+    Namada,
+};
 
 use crate::{
     dto::faucet::{FaucetRequestDto, FaucetResponseDto, FaucetResponseStatusDto},
@@ -33,7 +43,6 @@ pub async fn request_transfer(
     ValidatedRequest(payload): ValidatedRequest<FaucetRequestDto>,
 ) -> Result<Json<FaucetResponseStatusDto>, ApiError> {
     let auth_key: String = state.auth_key.clone();
-    let chain_id = state.chain_id.clone();
 
     let token_address = Address::decode(payload.transfer.token.clone());
     let token_address = if let Ok(address) = token_address {
@@ -48,7 +57,7 @@ pub async fn request_transfer(
         return Err(FaucetError::InvalidAddress.into());
     };
 
-    if state.faucet_repo.contains(&payload.challenge) {
+    if state.faucet_repo.contains(&payload.challenge).await {
         return Err(FaucetError::DuplicateChallenge.into());
     }
 
@@ -68,51 +77,55 @@ pub async fn request_transfer(
         return Err(FaucetError::InvalidPoW.into());
     }
 
-    let mut locked_sdk = state.sdk.lock().await;
+    let faucet_key = state.sdk.faucet_sk.clone();
+    let sdk = &state.sdk.namada;
 
-    let sk = locked_sdk
-        .get_secret_key()
-        .map_err(|e| FaucetError::SdkError(e.to_string()))?;
-    let nam_address = locked_sdk
-        .get_address("nam".to_string())
-        .map_err(|e| FaucetError::SdkError(e.to_string()))?;
+    let faucet_pk = faucet_key.to_public();
+    let faucet_address = Address::from(&faucet_pk);
 
-    let owner = Address::from(&sk.to_public());
-    let tx_args = locked_sdk.default_args(chain_id, vec![sk], None, nam_address.clone());
-    let signing_data = locked_sdk
-        .compute_signing_data(Some(owner.clone()), None, &tx_args)
-        .await
-        .map_err(|e| FaucetError::SdkError(e.to_string()))?;
-    let tx_data = locked_sdk
-        .build_transfer_args(
-            owner,
-            target_address,
-            token_address,
-            payload.transfer.amount,
-            nam_address,
-            tx_args.clone(),
-        )
-        .await
-        .map_err(|e| FaucetError::SdkError(e.to_string()))?;
-    let mut tx = locked_sdk
-        .build_transfer_tx(tx_data, signing_data.fee_payer.clone())
-        .await
-        .map_err(|e| FaucetError::SdkError(e.to_string()))?;
-    locked_sdk.sign_tx(&mut tx, signing_data, &tx_args);
-    let process_tx_response = locked_sdk
-        .process_tx(tx, &tx_args)
-        .await
-        .map_err(|e| FaucetError::SdkError(e.to_string()))?;
-    drop(locked_sdk);
+    let denominated_amount = rpc::denominate_amount(
+        sdk.client(),
+        sdk.io(),
+        &token_address,
+        payload.transfer.amount.into(),
+    )
+    .await;
 
-    let transfer_result = match process_tx_response {
-        namada::sdk::tx::ProcessTxResponse::Applied(r) => r.code.eq(&"0"),
-        namada::sdk::tx::ProcessTxResponse::Broadcast(r) => r.code.eq(&Code::Ok),
-        _ => false,
+    let mut transfer_tx_builder = sdk.new_transfer(
+        TransferSource::Address(faucet_address),
+        TransferTarget::Address(target_address),
+        token_address.clone(),
+        InputAmount::Unvalidated(denominated_amount),
+    );
+
+    let (mut transfer_tx, signing_data, _epoch) = transfer_tx_builder
+        .build(sdk)
+        .await
+        .expect("unable to build transfer");
+    sdk.sign(
+        &mut transfer_tx,
+        &transfer_tx_builder.tx,
+        signing_data,
+        default_sign,
+    )
+    .await
+    .expect("unable to sign reveal pk tx");
+    let process_tx_response = sdk.submit(transfer_tx, &transfer_tx_builder.tx).await;
+
+    let (transfer_result, tx_hash) = if let Ok(response) = process_tx_response {
+        match response {
+            namada_sdk::tx::ProcessTxResponse::Applied(r) => (r.code.eq(&"0"), Some(r.hash)),
+            namada_sdk::tx::ProcessTxResponse::Broadcast(r) => {
+                (r.code.eq(&Code::Ok), Some(r.hash.to_string()))
+            }
+            _ => (false, None),
+        }
+    } else {
+        (false, None)
     };
 
     if transfer_result {
-        state.faucet_repo.add(payload.challenge.clone());
+        state.faucet_repo.add(payload.challenge.clone()).await;
     }
 
     let response = FaucetResponseStatusDto {
@@ -120,6 +133,7 @@ pub async fn request_transfer(
         amount: payload.transfer.amount,
         target: payload.transfer.target.clone(),
         sent: transfer_result,
+        tx_hash,
     };
 
     Ok(Json(response))

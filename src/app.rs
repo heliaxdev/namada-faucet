@@ -1,8 +1,11 @@
 use std::{
     net::{Ipv4Addr, SocketAddr},
-    sync::{Arc, RwLock},
+    str::FromStr,
+    sync::Arc,
     time::Duration,
 };
+
+use tokio::sync::RwLock;
 
 use axum::{
     error_handling::HandleErrorLayer,
@@ -12,22 +15,20 @@ use axum::{
     BoxError, Json, Router,
 };
 use lazy_static::lazy_static;
+use namada_sdk::{
+    args::TxBuilder, io::NullIo, masp::fs::FsShieldedUtils, wallet::fs::FsWalletUtils,
+};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde_json::json;
+use tendermint_rpc::{HttpClient, Url};
 use tower::{buffer::BufferLayer, limit::RateLimitLayer, ServiceBuilder};
 use tower_http::{
     cors::{Any, CorsLayer},
     trace::TraceLayer,
 };
 
-use crate::{app_state::AppState, config::AppConfig, state::faucet::FaucetState};
-use crate::{
-    handler::faucet as faucet_handler,
-    sdk::{
-        namada::NamadaSdk,
-        utils::{sk_from_str, str_to_address},
-    },
-};
+use crate::{app_state::AppState, config::AppConfig, sdk::namada::Sdk, state::faucet::FaucetState};
+use crate::{handler::faucet as faucet_handler, sdk::utils::sk_from_str};
 
 lazy_static! {
     static ref HTTP_TIMEOUT: u64 = 30;
@@ -52,16 +53,24 @@ impl ApplicationServer {
         let difficulty = config.difficulty;
         let rps = config.rps;
         let chain_id = config.chain_id.clone();
-        let rpcs = config.rpcs.clone();
+        let rpcs: Vec<String> = config.rpcs.clone();
         let chain_start = config.chain_start;
 
         let sk = config.private_key.clone();
         let sk = sk_from_str(&sk);
 
-        let nam_address = config.nam_address.clone();
-        let nam_address = str_to_address(&nam_address);
+        let url = Url::from_str(rpcs.get(0).unwrap()).expect("invalid RPC address");
+        let http_client = HttpClient::new(url).unwrap();
 
-        let sdk = NamadaSdk::new(rpcs, sk.clone(), nam_address);
+        // Setup wallet storage
+        let wallet = FsWalletUtils::new("wallet".into());
+
+        // Setup shielded context storage
+        let shielded_ctx = FsShieldedUtils::new("masp".into());
+
+        let null_io = NullIo;
+
+        let sdk = Sdk::new(sk, http_client, wallet, shielded_ctx, null_io).await;
 
         let routes = {
             let faucet_state =

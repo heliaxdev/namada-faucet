@@ -28,9 +28,6 @@ pub struct AppConfig {
     pub rpcs: Vec<String>,
 
     #[clap(long, env)]
-    pub nam_address: String,
-
-    #[clap(long, env)]
     pub auth_key: Option<String>,
 
     #[clap(long, env)]
