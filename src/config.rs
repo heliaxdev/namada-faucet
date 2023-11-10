@@ -19,6 +19,9 @@ pub struct AppConfig {
     pub private_key: String,
 
     #[clap(long, env)]
+    pub chain_start: i64,
+
+    #[clap(long, env)]
     pub chain_id: String,
 
     #[clap(long, env)]

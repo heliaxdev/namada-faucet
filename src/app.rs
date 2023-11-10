@@ -53,6 +53,7 @@ impl ApplicationServer {
         let rps = config.rps;
         let chain_id = config.chain_id.clone();
         let rpcs = config.rpcs.clone();
+        let chain_start = config.chain_start;
 
         let sk = config.private_key.clone();
         let sk = sk_from_str(&sk);
@@ -63,7 +64,8 @@ impl ApplicationServer {
         let sdk = NamadaSdk::new(rpcs, sk.clone(), nam_address);
 
         let routes = {
-            let faucet_state = FaucetState::new(&db, sdk, auth_key, difficulty, chain_id);
+            let faucet_state =
+                FaucetState::new(&db, sdk, auth_key, difficulty, chain_id, chain_start);
 
             Router::new()
                 .route("/faucet", get(faucet_handler::request_challenge))
