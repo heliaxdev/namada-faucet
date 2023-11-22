@@ -9,34 +9,43 @@ use namada_sdk::{
     },
     io::NullIo,
     masp::{fs::FsShieldedUtils, ShieldedContext},
-    wallet::{fs::FsWalletUtils, Wallet},
+    wallet::{fs::FsWalletUtils, Wallet, WalletIo},
     NamadaImpl,
 };
-use tendermint_rpc::HttpClient;
+use rand_chacha::rand_core::OsRng;
+use tendermint_rpc::{HttpClient, Url};
 
-pub struct Sdk<'a> {
+pub struct Sdk {
     pub faucet_sk: SecretKey,
-    pub namada: NamadaImpl<'a, HttpClient, FsWalletUtils, FsShieldedUtils, NullIo>,
+    rpc_client: HttpClient,
+    wallet: Wallet<FsWalletUtils>,
+    shielded_ctx: ShieldedContext<FsShieldedUtils>,
+    io: NullIo
 }
 
-impl<'a> Sdk<'a> {
-    pub async fn new(
-        chain_id: &str,
+impl Sdk {
+    pub fn new(
         faucet_sk: SecretKey,
-        http_client: &'a HttpClient,
-        wallet: &'a mut Wallet<FsWalletUtils>,
-        shielded_ctx: &'a mut ShieldedContext<FsShieldedUtils>,
-        io: &'a NullIo,
-    ) -> Sdk<'a> {
-        
-        let namada = NamadaImpl::new(http_client, wallet, shielded_ctx, io)
-            .await
-            .expect("unable to construct Namada object")
-            .chain_id(ChainId::from_str(&chain_id).unwrap());
-
+        rpc_client: HttpClient,
+        wallet: Wallet<FsWalletUtils>,
+        shielded_ctx: ShieldedContext<FsShieldedUtils>,
+        io: NullIo
+    ) -> Self {
         Self {
             faucet_sk,
-            namada,
+            rpc_client,
+            wallet,
+            shielded_ctx,
+            io: NullIo
         }
+    }
+
+    pub async fn namada_ctx(&mut self) -> NamadaImpl<'_, HttpClient, FsWalletUtils, FsShieldedUtils, NullIo> {
+        NamadaImpl::new(
+            &self.rpc_client,
+            &mut self.wallet,
+            &mut self.shielded_ctx,
+            &self.io,
+        ).await.unwrap()
     }
 }

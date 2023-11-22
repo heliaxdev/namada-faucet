@@ -1,6 +1,6 @@
 use axum::{extract::State, Json};
 use axum_macros::debug_handler;
-use namada_sdk::{Namada, core::types::{address::Address, masp::{TransferSource, TransferTarget}, token::{DenominatedAmount, self}}, tendermint::abci::Code, args::InputAmount};
+use namada_sdk::{Namada, core::types::{address::Address, masp::{TransferSource, TransferTarget}, token::{DenominatedAmount, self}}, tendermint::abci::Code, args::InputAmount, signing::default_sign};
 
 use crate::{
     dto::faucet::{FaucetRequestDto, FaucetResponseDto, FaucetResponseStatusDto},
@@ -9,8 +9,8 @@ use crate::{
     state::faucet::FaucetState,
 };
 
-pub async fn request_challenge<'a>(
-    State(mut state): State<FaucetState<'a>>,
+pub async fn request_challenge(
+    State(mut state): State<FaucetState>,
 ) -> Result<Json<FaucetResponseDto>, ApiError> {
     let current_timestamp = chrono::offset::Utc::now().timestamp();
 
@@ -28,8 +28,8 @@ pub async fn request_challenge<'a>(
 }
 
 // #[debug_handler]
-pub async fn request_transfer<'a>(
-    State(mut state): State<FaucetState<'a>>,
+pub async fn request_transfer(
+    State(mut state): State<FaucetState>,
     ValidatedRequest(payload): ValidatedRequest<FaucetRequestDto>,
 ) -> Result<Json<FaucetResponseStatusDto>, ApiError> {
     let auth_key: String = state.auth_key.clone();
@@ -68,32 +68,33 @@ pub async fn request_transfer<'a>(
         return Err(FaucetError::InvalidPoW.into());
     }
 
-    let sdk = state.sdk.lock().unwrap();
+    let faucet_key_lock = state.sdk.read().unwrap();
+    let faucet_key = faucet_key_lock.faucet_sk.clone();
+    drop(faucet_key_lock);
+    let mut sdk_lock = state.sdk.write().unwrap();
+    let sdk = sdk_lock.namada_ctx().await;
 
-    let nam_address = sdk.namada.native_token();
-    let faucet_key = sdk.faucet_sk.clone();
-    let faucet_pk = faucet_key.to_public();
-    let faucet_address = Address::from(&faucet_pk);
+    // let nam_address = sdk.native_token();
+    // let faucet_pk = faucet_key.to_public();
+    // let faucet_address = Address::from(&faucet_pk);
 
-    let mut transfer_tx_builder = sdk.namada.new_transfer(
-        TransferSource::Address(faucet_address),
-        TransferTarget::Address(target_address),
-        token_address.clone(),
-        InputAmount::Unvalidated(DenominatedAmount::native(token::Amount::from_u64(
-            payload.transfer.amount,
-        ))),
-    );
+    // let mut transfer_tx_builder = sdk.new_transfer(
+    //     TransferSource::Address(faucet_address),
+    //     TransferTarget::Address(target_address),
+    //     token_address.clone(),
+    //     InputAmount::Unvalidated(DenominatedAmount::native(token::Amount::from_u64(
+    //         payload.transfer.amount,
+    //     ))),
+    // );
 
     // let (mut transfer_tx, signing_data, _epoch) = transfer_tx_builder
-    //         .build(&sdk.namada)
+    //         .build(&sdk)
     //         .await
     //         .expect("unable to build transfer");
-    //     sdk.namada
-    //         .sign(&mut transfer_tx, &transfer_tx_builder.tx, signing_data)
+    //     sdk.sign(&mut transfer_tx, &transfer_tx_builder.tx, signing_data, default_sign)
     //         .await
     //         .expect("unable to sign reveal pk tx");
     //     let process_tx_response = sdk
-    //         .namada
     //         .submit(transfer_tx, &transfer_tx_builder.tx)
     //         .await;
 

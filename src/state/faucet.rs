@@ -6,20 +6,20 @@ use crate::{
 use std::sync::{Arc, RwLock, Mutex};
 
 #[derive(Clone)]
-pub struct FaucetState<'a> {
+pub struct FaucetState {
     pub faucet_service: FaucetService,
     pub faucet_repo: FaucetRepository,
-    pub sdk: Arc<Mutex<Sdk<'a>>>,
+    pub sdk: Arc<RwLock<Sdk>>,
     pub auth_key: String,
     pub difficulty: u64,
     pub chain_id: String,
     pub chain_start: i64,
 }
 
-impl<'a> FaucetState<'a> {
+impl FaucetState {
     pub fn new(
         data: &Arc<RwLock<AppState>>,
-        sdk: Sdk<'a>,
+        sdk: Sdk,
         auth_key: String,
         difficulty: u64,
         chain_id: String,
@@ -28,7 +28,7 @@ impl<'a> FaucetState<'a> {
         Self {
             faucet_service: FaucetService::new(data),
             faucet_repo: FaucetRepository::new(data),
-            sdk: Arc::new(Mutex::new(sdk)),
+            sdk: Arc::new(RwLock::new(sdk)),
             auth_key,
             difficulty,
             chain_id,

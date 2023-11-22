@@ -13,7 +13,7 @@ use axum::{
     BoxError, Json, Router,
 };
 use lazy_static::lazy_static;
-use namada_sdk::{io::NullIo, masp::fs::FsShieldedUtils, wallet::fs::FsWalletUtils};
+use namada_sdk::{io::NullIo, masp::fs::FsShieldedUtils, wallet::fs::FsWalletUtils, NamadaImpl, core::types::chain::ChainId, args::TxBuilder};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde_json::json;
 use tendermint_rpc::{HttpClient, Url};
@@ -64,17 +64,9 @@ impl ApplicationServer {
         // Setup shielded context storage
         let mut shielded_ctx = FsShieldedUtils::new("masp".into());
 
-        let io = NullIo;
+        let null_io = NullIo;
 
-        let sdk = Sdk::new(
-            &chain_id,
-            sk,
-            &http_client,
-            &mut wallet,
-            &mut shielded_ctx,
-            &io,
-        )
-        .await;
+        let sdk = Sdk::new(sk, http_client, wallet, shielded_ctx, null_io);
 
         let routes = {
             let faucet_state =
