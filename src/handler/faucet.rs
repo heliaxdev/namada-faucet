@@ -27,7 +27,7 @@ pub async fn request_challenge(
     Ok(Json(response))
 }
 
-// #[debug_handler]
+#[debug_handler]
 pub async fn request_transfer(
     State(mut state): State<FaucetState>,
     ValidatedRequest(payload): ValidatedRequest<FaucetRequestDto>,
@@ -48,7 +48,7 @@ pub async fn request_transfer(
         return Err(FaucetError::InvalidAddress.into());
     };
 
-    if state.faucet_repo.contains(&payload.challenge) {
+    if state.faucet_repo.contains(&payload.challenge).await {
         return Err(FaucetError::DuplicateChallenge.into());
     }
 
@@ -68,49 +68,49 @@ pub async fn request_transfer(
         return Err(FaucetError::InvalidPoW.into());
     }
 
-    let faucet_key_lock = state.sdk.read().unwrap();
+    let faucet_key_lock = state.sdk.read().await;
     let faucet_key = faucet_key_lock.faucet_sk.clone();
     drop(faucet_key_lock);
-    let mut sdk_lock = state.sdk.write().unwrap();
+    let mut sdk_lock = state.sdk.write().await;
     let sdk = sdk_lock.namada_ctx().await;
 
-    // let nam_address = sdk.native_token();
-    // let faucet_pk = faucet_key.to_public();
-    // let faucet_address = Address::from(&faucet_pk);
+    let nam_address = sdk.native_token();
+    let faucet_pk = faucet_key.to_public();
+    let faucet_address = Address::from(&faucet_pk);
 
-    // let mut transfer_tx_builder = sdk.new_transfer(
-    //     TransferSource::Address(faucet_address),
-    //     TransferTarget::Address(target_address),
-    //     token_address.clone(),
-    //     InputAmount::Unvalidated(DenominatedAmount::native(token::Amount::from_u64(
-    //         payload.transfer.amount,
-    //     ))),
-    // );
+    let mut transfer_tx_builder = sdk.new_transfer(
+        TransferSource::Address(faucet_address),
+        TransferTarget::Address(target_address),
+        token_address.clone(),
+        InputAmount::Unvalidated(DenominatedAmount::native(token::Amount::from_u64(
+            payload.transfer.amount,
+        ))),
+    );
 
-    // let (mut transfer_tx, signing_data, _epoch) = transfer_tx_builder
-    //         .build(&sdk)
-    //         .await
-    //         .expect("unable to build transfer");
-    //     sdk.sign(&mut transfer_tx, &transfer_tx_builder.tx, signing_data, default_sign)
-    //         .await
-    //         .expect("unable to sign reveal pk tx");
-    //     let process_tx_response = sdk
-    //         .submit(transfer_tx, &transfer_tx_builder.tx)
-    //         .await;
+    let (mut transfer_tx, signing_data, _epoch) = transfer_tx_builder
+            .build(&sdk)
+            .await
+            .expect("unable to build transfer");
+    sdk.sign(&mut transfer_tx, &transfer_tx_builder.tx, signing_data, default_sign)
+        .await
+        .expect("unable to sign reveal pk tx");
+    let process_tx_response = sdk
+        .submit(transfer_tx, &transfer_tx_builder.tx)
+        .await;
 
-    // let transfer_result = if let Ok(response) = process_tx_response {
-    //     match response {
-    //         namada_sdk::tx::ProcessTxResponse::Applied(r) => r.code.eq(&"0"),
-    //         namada_sdk::tx::ProcessTxResponse::Broadcast(r) => r.code.eq(&Code::Ok),    
-    //         _ => false,
-    //     }
-    // } else {
-    //     false
-    // };
+    let transfer_result = if let Ok(response) = process_tx_response {
+        match response {
+            namada_sdk::tx::ProcessTxResponse::Applied(r) => r.code.eq(&"0"),
+            namada_sdk::tx::ProcessTxResponse::Broadcast(r) => r.code.eq(&Code::Ok),    
+            _ => false,
+        }
+    } else {
+        false
+    };
 
-    // if transfer_result {
-    //     state.faucet_repo.add(payload.challenge.clone());
-    // }
+    if transfer_result {
+        state.faucet_repo.add(payload.challenge.clone());
+    }
 
     let response = FaucetResponseStatusDto {
         token: payload.transfer.token.clone(),

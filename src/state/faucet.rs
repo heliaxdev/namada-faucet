@@ -3,7 +3,8 @@ use crate::{
     repository::faucet::FaucetRepositoryTrait,
     services::faucet::FaucetService, sdk::namada::Sdk,
 };
-use std::sync::{Arc, RwLock, Mutex};
+use std::sync::{Arc};
+use tokio::sync::RwLock;
 
 #[derive(Clone)]
 pub struct FaucetState {

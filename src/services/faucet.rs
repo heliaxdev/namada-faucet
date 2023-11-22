@@ -6,7 +6,8 @@ use rand::SeedableRng;
 use rand_chacha::rand_core::OsRng;
 use rand_chacha::ChaCha20Core;
 
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc};
+use tokio::sync::RwLock;
 
 use crate::{
     app_state::AppState, entity::faucet::Faucet, error::api::ApiError,

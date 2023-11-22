@@ -1,4 +1,5 @@
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc};
+use tokio::sync::RwLock;
 
 use async_trait::async_trait;
 
@@ -12,8 +13,8 @@ pub struct FaucetRepository {
 #[async_trait]
 pub trait FaucetRepositoryTrait {
     fn new(data: &Arc<RwLock<AppState>>) -> Self;
-    fn add(&mut self, challenge: String);
-    fn contains(&self, challenge: &str) -> bool;
+    async fn add(&mut self, challenge: String);
+    async fn contains(&self, challenge: &str) -> bool;
 }
 
 #[async_trait]
@@ -22,13 +23,13 @@ impl FaucetRepositoryTrait for FaucetRepository {
         Self { data: data.clone() }
     }
 
-    fn add(&mut self, challenge: String) {
-        let mut state = self.data.write().expect("Should be able to lock appstate.");
+    async fn add(&mut self, challenge: String) {
+        let mut state = self.data.write().await;
         state.add(challenge)
     }
 
-    fn contains(&self, challenge: &str) -> bool {
-        let state = self.data.read().expect("Should be able to lock appstate.");
+    async fn contains(&self, challenge: &str) -> bool {
+        let state = self.data.read().await;
         state.contains(&challenge.to_string())
     }
 }

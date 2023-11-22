@@ -1,9 +1,11 @@
 use std::{
     net::{Ipv4Addr, SocketAddr},
     str::FromStr,
-    sync::{Arc, RwLock},
+    sync::{Arc},
     time::Duration,
 };
+
+use tokio::sync::RwLock;
 
 use axum::{
     error_handling::HandleErrorLayer,

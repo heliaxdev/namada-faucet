@@ -12,7 +12,6 @@ use namada_sdk::{
     wallet::{fs::FsWalletUtils, Wallet, WalletIo},
     NamadaImpl,
 };
-use rand_chacha::rand_core::OsRng;
 use tendermint_rpc::{HttpClient, Url};
 
 pub struct Sdk {
@@ -20,7 +19,7 @@ pub struct Sdk {
     rpc_client: HttpClient,
     wallet: Wallet<FsWalletUtils>,
     shielded_ctx: ShieldedContext<FsShieldedUtils>,
-    io: NullIo
+    io: NullIo,
 }
 
 impl Sdk {
@@ -29,23 +28,27 @@ impl Sdk {
         rpc_client: HttpClient,
         wallet: Wallet<FsWalletUtils>,
         shielded_ctx: ShieldedContext<FsShieldedUtils>,
-        io: NullIo
+        io: NullIo,
     ) -> Self {
         Self {
             faucet_sk,
             rpc_client,
             wallet,
             shielded_ctx,
-            io: NullIo
+            io: NullIo,
         }
     }
 
-    pub async fn namada_ctx(&mut self) -> NamadaImpl<'_, HttpClient, FsWalletUtils, FsShieldedUtils, NullIo> {
+    pub async fn namada_ctx(
+        &mut self,
+    ) -> NamadaImpl<'_, HttpClient, FsWalletUtils, FsShieldedUtils, NullIo> {
         NamadaImpl::new(
             &self.rpc_client,
             &mut self.wallet,
             &mut self.shielded_ctx,
             &self.io,
-        ).await.unwrap()
+        )
+        .await
+        .unwrap()
     }
 }
