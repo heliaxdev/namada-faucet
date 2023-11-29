@@ -1,13 +1,14 @@
 from requests import get, post
 from hashlib import sha256
+import argparse
 
-URL = "http://0.0.0.0:5000/api/v1/faucet"
+DEFAULT_URL = "http://0.0.0.0:5000/api/v1/faucet"
 
-def request_challenge():
-    return get(URL).json()
+def request_challenge(url):
+    return get(url).json()
 
-def request_transfer(data):
-    return post(URL, json=data)
+def request_transfer(url, data):
+    return post(url, json=data)
 
 def is_valid_pow(solution, difficulty):
     for i in range(0, difficulty):
@@ -29,19 +30,26 @@ def compute_pow_solution(challenge, difficulty):
             return i.to_bytes(64, byteorder='big').hex()
         i += 1
 
-response = request_challenge()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Request from an amount of token from faucet.')
+    parser.add_argument('url', action='store', type=str, required=False, default=DEFAULT_URL, help='The faucet url.')
+    parser.add_argument('token', action='store', type=int, required=False, help='The token address.')
+    parser.add_argument('amount', action='store', type=int, required=False, default=1000, help='The token amount.')
+    parser.add_argument('target', action='store', type=str, required=True, help='The target address.')
 
-solution = compute_pow_solution(response['challenge'], 2)
+    args = parser.parse_args()
 
-response = request_transfer({
-    'solution': solution,
-    'tag': response['tag'],
-    'challenge': response['challenge'],
-    'transfer': {
-        'target': 'tnam1qyf2tv9l8w7hfu5glr72chzz5zjknywjugnvh34x',
-        'token': 'tnam1qyxg9d8zr4su9ks3a368485kjjr3e880kysz076g',
-        'amount': 100 * 10**6
-    }
-})
+    response = request_challenge(args.url)
+    solution = compute_pow_solution(args.url, response['challenge'], 2)
+    response = request_transfer({
+        'solution': solution,
+        'tag': response['tag'],
+        'challenge': response['challenge'],
+        'transfer': {
+            'target': args.target,
+            'token': args.token,
+            'amount': args.amounr * 10**6
+        }
+    })
 
-print(response.json())
+    print(response.json())
