@@ -15,9 +15,7 @@ use axum::{
     BoxError, Json, Router,
 };
 use lazy_static::lazy_static;
-use namada_sdk::{
-    args::TxBuilder, io::NullIo, masp::fs::FsShieldedUtils, wallet::fs::FsWalletUtils,
-};
+use namada_sdk::{io::NullIo, masp::fs::FsShieldedUtils, wallet::fs::FsWalletUtils, NamadaImpl};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde_json::json;
 use tendermint_rpc::{HttpClient, Url};
@@ -27,7 +25,7 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use crate::{app_state::AppState, config::AppConfig, sdk::namada::Sdk, state::faucet::FaucetState};
+use crate::{app_state::AppState, config::AppConfig, state::faucet::FaucetState};
 use crate::{handler::faucet as faucet_handler, sdk::utils::sk_from_str};
 
 lazy_static! {
@@ -70,11 +68,13 @@ impl ApplicationServer {
 
         let null_io = NullIo;
 
-        let sdk = Sdk::new(sk, http_client, wallet, shielded_ctx, null_io).await;
+        let sdk = NamadaImpl::new(http_client, wallet, shielded_ctx, null_io)
+            .await
+            .expect("unable to initialize Namada context");
 
         let routes = {
             let faucet_state =
-                FaucetState::new(&db, sdk, auth_key, difficulty, chain_id, chain_start);
+                FaucetState::new(&db, sk, sdk, auth_key, difficulty, chain_id, chain_start);
 
             Router::new()
                 .route("/faucet", get(faucet_handler::request_challenge))

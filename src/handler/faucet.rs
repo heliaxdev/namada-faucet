@@ -77,21 +77,21 @@ pub async fn request_transfer(
         return Err(FaucetError::InvalidPoW.into());
     }
 
-    let faucet_key = state.sdk.faucet_sk.clone();
-    let sdk = &state.sdk.namada;
+    let faucet_key = state.faucet_sk.clone();
 
+    let _nam_address = state.sdk.native_token();
     let faucet_pk = faucet_key.to_public();
     let faucet_address = Address::from(&faucet_pk);
 
     let denominated_amount = rpc::denominate_amount(
-        sdk.client(),
-        sdk.io(),
+        state.sdk.client(),
+        state.sdk.io(),
         &token_address,
         payload.transfer.amount.into(),
     )
     .await;
 
-    let mut transfer_tx_builder = sdk.new_transfer(
+    let mut transfer_tx_builder = state.sdk.new_transfer(
         TransferSource::Address(faucet_address),
         TransferTarget::Address(target_address),
         token_address.clone(),
@@ -99,18 +99,20 @@ pub async fn request_transfer(
     );
 
     let (mut transfer_tx, signing_data, _epoch) = transfer_tx_builder
-        .build(sdk)
+        .build(&*state.sdk)
         .await
         .expect("unable to build transfer");
-    sdk.sign(
-        &mut transfer_tx,
-        &transfer_tx_builder.tx,
-        signing_data,
-        default_sign,
-    )
-    .await
-    .expect("unable to sign reveal pk tx");
-    let process_tx_response = sdk.submit(transfer_tx, &transfer_tx_builder.tx).await;
+    state
+        .sdk
+        .sign(
+            &mut transfer_tx,
+            &transfer_tx_builder.tx,
+            signing_data,
+            default_sign,
+        )
+        .await
+        .expect("unable to sign reveal pk tx");
+    let process_tx_response = state.sdk.submit(transfer_tx, &transfer_tx_builder.tx).await;
 
     let (transfer_result, tx_hash) = if let Ok(response) = process_tx_response {
         match response {

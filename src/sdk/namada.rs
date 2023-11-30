@@ -9,7 +9,7 @@ use tendermint_rpc::HttpClient;
 
 pub struct Sdk {
     pub faucet_sk: SecretKey,
-    pub namada: NamadaImpl<HttpClient, FsWalletUtils, FsShieldedUtils, NullIo>,
+    namada_impl: NamadaImpl<HttpClient, FsWalletUtils, FsShieldedUtils, NullIo>,
 }
 
 impl Sdk {
@@ -20,9 +20,17 @@ impl Sdk {
         shielded_ctx: ShieldedContext<FsShieldedUtils>,
         io: NullIo,
     ) -> Self {
-        let namada = NamadaImpl::new(rpc_client, wallet, shielded_ctx, io)
-            .await
-            .unwrap();
-        Self { faucet_sk, namada }
+        Self {
+            faucet_sk,
+            namada_impl: NamadaImpl::new(rpc_client, wallet, shielded_ctx, io)
+                .await
+                .unwrap(),
+        }
+    }
+
+    pub async fn namada_ctx(
+        &self,
+    ) -> &NamadaImpl<HttpClient, FsWalletUtils, FsShieldedUtils, NullIo> {
+        &self.namada_impl
     }
 }
