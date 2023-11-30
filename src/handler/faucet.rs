@@ -68,17 +68,13 @@ pub async fn request_transfer(
         return Err(FaucetError::InvalidPoW.into());
     }
 
-    let faucet_key_lock = state.sdk.read().await;
-    let faucet_key = faucet_key_lock.faucet_sk.clone();
-    drop(faucet_key_lock);
-    let mut sdk_lock = state.sdk.write().await;
-    let sdk = sdk_lock.namada_ctx().await;
+    let faucet_key = state.faucet_sk.clone();
 
-    let nam_address = sdk.native_token();
+    let nam_address = state.sdk.native_token();
     let faucet_pk = faucet_key.to_public();
     let faucet_address = Address::from(&faucet_pk);
 
-    let mut transfer_tx_builder = sdk.new_transfer(
+    let mut transfer_tx_builder = state.sdk.new_transfer(
         TransferSource::Address(faucet_address),
         TransferTarget::Address(target_address),
         token_address.clone(),
@@ -88,13 +84,13 @@ pub async fn request_transfer(
     );
 
     let (mut transfer_tx, signing_data, _epoch) = transfer_tx_builder
-            .build(&sdk)
-            .await
-            .expect("unable to build transfer");
-    sdk.sign(&mut transfer_tx, &transfer_tx_builder.tx, signing_data, default_sign)
+        .build(&*state.sdk)
+        .await
+        .expect("unable to build transfer");
+    state.sdk.sign(&mut transfer_tx, &transfer_tx_builder.tx, signing_data, default_sign)
         .await
         .expect("unable to sign reveal pk tx");
-    let process_tx_response = sdk
+    let process_tx_response = state.sdk
         .submit(transfer_tx, &transfer_tx_builder.tx)
         .await;
 

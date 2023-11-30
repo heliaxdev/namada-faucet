@@ -68,11 +68,13 @@ impl ApplicationServer {
 
         let null_io = NullIo;
 
-        let sdk = Sdk::new(sk, http_client, wallet, shielded_ctx, null_io);
+        let sdk = NamadaImpl::new(http_client, wallet, shielded_ctx, null_io)
+            .await
+            .expect("unable to initialize Namada context");
 
         let routes = {
             let faucet_state =
-                FaucetState::new(&db, sdk, auth_key, difficulty, chain_id, chain_start);
+                FaucetState::new(&db, sk, sdk, auth_key, difficulty, chain_id, chain_start);
 
             Router::new()
                 .route("/faucet", get(faucet_handler::request_challenge))
