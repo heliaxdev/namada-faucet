@@ -6,8 +6,11 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use namada_sdk::{
-    core::types::key::common::SecretKey, io::NullIo, masp::fs::FsShieldedUtils,
-    wallet::fs::FsWalletUtils, NamadaImpl,
+    core::types::{address::Address, key::common::SecretKey},
+    io::NullIo,
+    masp::fs::FsShieldedUtils,
+    wallet::fs::FsWalletUtils,
+    NamadaImpl,
 };
 use tendermint_rpc::HttpClient;
 
@@ -15,7 +18,7 @@ use tendermint_rpc::HttpClient;
 pub struct FaucetState {
     pub faucet_service: FaucetService,
     pub faucet_repo: FaucetRepository,
-    pub faucet_sk: SecretKey,
+    pub faucet_address: Address,
     pub sdk: Arc<NamadaImpl<HttpClient, FsWalletUtils, FsShieldedUtils, NullIo>>,
     pub auth_key: String,
     pub difficulty: u64,
@@ -26,7 +29,7 @@ pub struct FaucetState {
 impl FaucetState {
     pub fn new(
         data: &Arc<RwLock<AppState>>,
-        faucet_sk: SecretKey,
+        faucet_address: Address,
         sdk: NamadaImpl<HttpClient, FsWalletUtils, FsShieldedUtils, NullIo>,
         auth_key: String,
         difficulty: u64,
@@ -36,7 +39,7 @@ impl FaucetState {
         Self {
             faucet_service: FaucetService::new(data),
             faucet_repo: FaucetRepository::new(data),
-            faucet_sk,
+            faucet_address,
             sdk: Arc::new(sdk),
             auth_key,
             difficulty,

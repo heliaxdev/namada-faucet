@@ -1,7 +1,7 @@
 use axum::{extract::State, Json};
 use axum_macros::debug_handler;
 use namada_sdk::{
-    args::InputAmount,
+    args::{InputAmount, TxBuilder},
     core::types::{
         address::Address,
         masp::{TransferSource, TransferTarget},
@@ -77,11 +77,7 @@ pub async fn request_transfer(
         return Err(FaucetError::InvalidPoW.into());
     }
 
-    let faucet_key = state.faucet_sk.clone();
-
-    let _nam_address = state.sdk.native_token();
-    let faucet_pk = faucet_key.to_public();
-    let faucet_address = Address::from(&faucet_pk);
+    let faucet_address = state.faucet_address.clone();
 
     let denominated_amount = rpc::denominate_amount(
         state.sdk.client(),

@@ -15,7 +15,14 @@ use axum::{
     BoxError, Json, Router,
 };
 use lazy_static::lazy_static;
-use namada_sdk::{io::NullIo, masp::fs::FsShieldedUtils, wallet::fs::FsWalletUtils, NamadaImpl};
+use namada_sdk::{
+    args::TxBuilder,
+    core::types::{address::Address, chain::ChainId, key::RefTo},
+    io::NullIo,
+    masp::fs::FsShieldedUtils,
+    wallet::fs::FsWalletUtils,
+    NamadaImpl,
+};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde_json::json;
 use tendermint_rpc::{HttpClient, Url};
@@ -56,6 +63,8 @@ impl ApplicationServer {
 
         let sk = config.private_key.clone();
         let sk = sk_from_str(&sk);
+        let pk = sk.ref_to();
+        let address = Address::from(&pk);
 
         let url = Url::from_str(rpcs.get(0).unwrap()).expect("invalid RPC address");
         let http_client = HttpClient::new(url).unwrap();
@@ -70,11 +79,32 @@ impl ApplicationServer {
 
         let sdk = NamadaImpl::new(http_client, wallet, shielded_ctx, null_io)
             .await
-            .expect("unable to initialize Namada context");
+            .expect("unable to initialize Namada context")
+            .chain_id(ChainId::from_str(&chain_id).unwrap());
+
+        let mut wallet = sdk.wallet.blocking_write();
+        wallet
+            .insert_keypair(
+                "faucet".to_string(),
+                true,
+                sk.clone(),
+                None,
+                Some(address.clone()),
+                None,
+            )
+            .unwrap();
+        drop(wallet);
 
         let routes = {
-            let faucet_state =
-                FaucetState::new(&db, sk, sdk, auth_key, difficulty, chain_id, chain_start);
+            let faucet_state = FaucetState::new(
+                &db,
+                address,
+                sdk,
+                auth_key,
+                difficulty,
+                chain_id,
+                chain_start,
+            );
 
             Router::new()
                 .route("/faucet", get(faucet_handler::request_challenge))
