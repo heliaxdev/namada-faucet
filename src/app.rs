@@ -111,7 +111,10 @@ impl ApplicationServer {
                 .route("/faucet", get(faucet_handler::request_challenge))
                 .route("/faucet", post(faucet_handler::request_transfer))
                 .with_state(faucet_state)
-                .merge(Router::new().route("/health", get(|| async { "Healthy..." })))
+                .merge(Router::new().route(
+                    "/health",
+                    get(|| async { env!("VERGEN_GIT_SHA").to_string() }),
+                ))
         };
 
         let cors = CorsLayer::new()

@@ -20,7 +20,7 @@ use crate::{
 };
 
 pub async fn faucet_settings(
-    State(mut state): State<FaucetState>,
+    State(state): State<FaucetState>,
 ) -> Result<Json<FaucetSettingResponse>, ApiError> {
     let response = FaucetSettingResponse {
         difficulty: state.difficulty,
