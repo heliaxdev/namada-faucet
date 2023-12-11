@@ -48,3 +48,10 @@ pub struct FaucetResponseStatusDto {
     pub sent: bool,
     pub tx_hash: Option<String>,
 }
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct FaucetSettingResponse {
+    pub difficulty: u64,
+    pub chain_id: String,
+    pub start_at: i64
+}

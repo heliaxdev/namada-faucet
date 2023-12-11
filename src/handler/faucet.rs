@@ -13,11 +13,23 @@ use namada_sdk::{
 };
 
 use crate::{
-    dto::faucet::{FaucetRequestDto, FaucetResponseDto, FaucetResponseStatusDto},
+    dto::faucet::{FaucetRequestDto, FaucetResponseDto, FaucetResponseStatusDto, FaucetSettingResponse},
     error::{api::ApiError, faucet::FaucetError, validate::ValidatedRequest},
     repository::faucet::FaucetRepositoryTrait,
     state::faucet::FaucetState,
 };
+
+pub async fn faucet_settings(
+    State(mut state): State<FaucetState>,
+) -> Result<Json<FaucetSettingResponse>, ApiError> {
+    let response = FaucetSettingResponse {
+        difficulty: state.difficulty,
+        chain_id: state.chain_id,
+        start_at: state.chain_start,
+    };
+
+    Ok(Json(response))
+}
 
 pub async fn request_challenge(
     State(mut state): State<FaucetState>,

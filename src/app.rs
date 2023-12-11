@@ -107,6 +107,7 @@ impl ApplicationServer {
             );
 
             Router::new()
+                .route("/faucet/setting", get(faucet_handler::faucet_settings))
                 .route("/faucet", get(faucet_handler::request_challenge))
                 .route("/faucet", post(faucet_handler::request_transfer))
                 .with_state(faucet_state)
