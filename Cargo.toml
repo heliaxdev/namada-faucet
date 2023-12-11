@@ -37,19 +37,14 @@ rand = "0.8.5"
 rand_chacha = "0.3.1"
 dotenvy = "0.15.7"
 hex = "0.4.3"
-# TODO: set back to a specific version of Namada when the PR is merged
-namada = { git = "https://github.com/anoma/namada", rev = "v0.23.0", default-features = false, features = ["abciplus", "namada-sdk", "async-send"] }
-borsh = "0.9.4"
+namada_sdk = { git = "https://github.com/anoma/namada", branch = "fraccaman+bat/fix-sdk-0.28.0", default-features = false, features = ["tendermint-rpc", "std", "async-client", "async-send", "download-params"] }
+tendermint-config = "0.34.0"
+tendermint-rpc = { version = "0.34.0", features = ["http-client"]}
 orion = "0.17.5"
 data-encoding = "2.4.0"
 reqwest = "0.11.20"
 zeroize = "1.6.0"
-masp_primitives = { git = "https://github.com/anoma/masp", rev = "50acc5028fbcd52a05970fe7991c7850ab04358e" }
-masp_proofs = { git = "https://github.com/anoma/masp", rev = "50acc5028fbcd52a05970fe7991c7850ab04358e", default-features = false, features = ["local-prover"] }
 axum-macros = "0.3.8"
-
-[patch.crates-io]
-borsh = {git = "https://github.com/heliaxdev/borsh-rs.git", rev = "cd5223e5103c4f139e0c54cf8259b7ec5ec4073a"}
 
 [profile.ephemeral-build]
 inherits = "release"

@@ -46,4 +46,5 @@ pub struct FaucetResponseStatusDto {
     pub amount: u64,
     pub target: String,
     pub sent: bool,
+    pub tx_hash: Option<String>,
 }

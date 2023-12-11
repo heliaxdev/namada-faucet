@@ -1,16 +1,22 @@
 use crate::{
     app_state::AppState, repository::faucet::FaucetRepository,
-    repository::faucet::FaucetRepositoryTrait, sdk::namada::NamadaSdk,
-    services::faucet::FaucetService,
+    repository::faucet::FaucetRepositoryTrait, services::faucet::FaucetService,
 };
-use std::sync::{Arc, RwLock};
-use tokio::sync::Mutex;
+use std::sync::Arc;
+use tokio::sync::RwLock;
+
+use namada_sdk::{
+    core::types::address::Address, io::NullIo, masp::fs::FsShieldedUtils,
+    wallet::fs::FsWalletUtils, NamadaImpl,
+};
+use tendermint_rpc::HttpClient;
 
 #[derive(Clone)]
 pub struct FaucetState {
     pub faucet_service: FaucetService,
     pub faucet_repo: FaucetRepository,
-    pub sdk: Arc<Mutex<NamadaSdk>>,
+    pub faucet_address: Address,
+    pub sdk: Arc<NamadaImpl<HttpClient, FsWalletUtils, FsShieldedUtils, NullIo>>,
     pub auth_key: String,
     pub difficulty: u64,
     pub chain_id: String,
@@ -20,7 +26,8 @@ pub struct FaucetState {
 impl FaucetState {
     pub fn new(
         data: &Arc<RwLock<AppState>>,
-        sdk: NamadaSdk,
+        faucet_address: Address,
+        sdk: NamadaImpl<HttpClient, FsWalletUtils, FsShieldedUtils, NullIo>,
         auth_key: String,
         difficulty: u64,
         chain_id: String,
@@ -29,7 +36,8 @@ impl FaucetState {
         Self {
             faucet_service: FaucetService::new(data),
             faucet_repo: FaucetRepository::new(data),
-            sdk: Arc::new(Mutex::new(sdk)),
+            faucet_address,
+            sdk: Arc::new(sdk),
             auth_key,
             difficulty,
             chain_id,
