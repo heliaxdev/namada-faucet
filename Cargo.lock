@@ -3340,7 +3340,7 @@ dependencies = [
 [[package]]
 name = "namada_core"
 version = "0.28.0"
-source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#b2299bbff72aa3296ab8507186598aeb1cd353b2"
+source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#6e1c3cef673881488e8f557e4c5d4abbc00a6d69"
 dependencies = [
  "ark-bls12-381",
  "ark-serialize",
@@ -3390,7 +3390,7 @@ dependencies = [
 [[package]]
 name = "namada_ethereum_bridge"
 version = "0.28.0"
-source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#b2299bbff72aa3296ab8507186598aeb1cd353b2"
+source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#6e1c3cef673881488e8f557e4c5d4abbc00a6d69"
 dependencies = [
  "borsh",
  "borsh-ext",
@@ -3412,7 +3412,7 @@ dependencies = [
 [[package]]
 name = "namada_macros"
 version = "0.28.0"
-source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#b2299bbff72aa3296ab8507186598aeb1cd353b2"
+source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#6e1c3cef673881488e8f557e4c5d4abbc00a6d69"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3422,7 +3422,7 @@ dependencies = [
 [[package]]
 name = "namada_proof_of_stake"
 version = "0.28.0"
-source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#b2299bbff72aa3296ab8507186598aeb1cd353b2"
+source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#6e1c3cef673881488e8f557e4c5d4abbc00a6d69"
 dependencies = [
  "borsh",
  "data-encoding",
@@ -3437,7 +3437,7 @@ dependencies = [
 [[package]]
 name = "namada_sdk"
 version = "0.28.0"
-source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#b2299bbff72aa3296ab8507186598aeb1cd353b2"
+source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#6e1c3cef673881488e8f557e4c5d4abbc00a6d69"
 dependencies = [
  "async-trait",
  "bimap",

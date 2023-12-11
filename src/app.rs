@@ -58,7 +58,7 @@ impl ApplicationServer {
         let difficulty = config.difficulty;
         let rps = config.rps;
         let chain_id = config.chain_id.clone();
-        let rpcs: Vec<String> = config.rpcs.clone();
+        let rpc = config.rpc.clone();
         let chain_start = config.chain_start;
 
         let sk = config.private_key.clone();
@@ -66,7 +66,7 @@ impl ApplicationServer {
         let pk = sk.ref_to();
         let address = Address::from(&pk);
 
-        let url = Url::from_str(rpcs.get(0).unwrap()).expect("invalid RPC address");
+        let url = Url::from_str(&rpc).expect("invalid RPC address");
         let http_client = HttpClient::new(url).unwrap();
 
         // Setup wallet storage
