@@ -1,7 +1,7 @@
 use axum::{extract::State, Json};
 use axum_macros::debug_handler;
 use namada_sdk::{
-    args::{InputAmount, TxBuilder},
+    args::InputAmount,
     core::types::{
         address::Address,
         masp::{TransferSource, TransferTarget},
@@ -105,9 +105,11 @@ pub async fn request_transfer(
             &transfer_tx_builder.tx,
             signing_data,
             default_sign,
+            (),
         )
         .await
         .expect("unable to sign reveal pk tx");
+
     let process_tx_response = state.sdk.submit(transfer_tx, &transfer_tx_builder.tx).await;
 
     let (transfer_result, tx_hash) = if let Ok(response) = process_tx_response {
