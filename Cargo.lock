@@ -3341,7 +3341,7 @@ dependencies = [
 [[package]]
 name = "namada_core"
 version = "0.28.0"
-source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#6e1c3cef673881488e8f557e4c5d4abbc00a6d69"
+source = "git+https://github.com/anoma/namada?branch=fraccaman/draft-0.28.1#ced14f1e851d2e71316f76479524cc415fd5df16"
 dependencies = [
  "ark-bls12-381",
  "ark-serialize",
@@ -3391,7 +3391,7 @@ dependencies = [
 [[package]]
 name = "namada_ethereum_bridge"
 version = "0.28.0"
-source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#6e1c3cef673881488e8f557e4c5d4abbc00a6d69"
+source = "git+https://github.com/anoma/namada?branch=fraccaman/draft-0.28.1#ced14f1e851d2e71316f76479524cc415fd5df16"
 dependencies = [
  "borsh",
  "borsh-ext",
@@ -3413,7 +3413,7 @@ dependencies = [
 [[package]]
 name = "namada_macros"
 version = "0.28.0"
-source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#6e1c3cef673881488e8f557e4c5d4abbc00a6d69"
+source = "git+https://github.com/anoma/namada?branch=fraccaman/draft-0.28.1#ced14f1e851d2e71316f76479524cc415fd5df16"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3423,7 +3423,7 @@ dependencies = [
 [[package]]
 name = "namada_proof_of_stake"
 version = "0.28.0"
-source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#6e1c3cef673881488e8f557e4c5d4abbc00a6d69"
+source = "git+https://github.com/anoma/namada?branch=fraccaman/draft-0.28.1#ced14f1e851d2e71316f76479524cc415fd5df16"
 dependencies = [
  "borsh",
  "data-encoding",
@@ -3438,7 +3438,7 @@ dependencies = [
 [[package]]
 name = "namada_sdk"
 version = "0.28.0"
-source = "git+https://github.com/anoma/namada?branch=fraccaman+bat/fix-sdk-0.28.0#6e1c3cef673881488e8f557e4c5d4abbc00a6d69"
+source = "git+https://github.com/anoma/namada?branch=fraccaman/draft-0.28.1#ced14f1e851d2e71316f76479524cc415fd5df16"
 dependencies = [
  "async-trait",
  "bimap",
@@ -3452,6 +3452,7 @@ dependencies = [
  "fd-lock",
  "futures",
  "itertools 0.10.5",
+ "lazy_static",
  "masp_primitives",
  "masp_proofs",
  "namada_core",
