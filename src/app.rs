@@ -82,7 +82,7 @@ impl ApplicationServer {
             .expect("unable to initialize Namada context")
             .chain_id(ChainId::from_str(&chain_id).unwrap());
 
-        let mut wallet = sdk.wallet.blocking_write();
+        let mut wallet = sdk.wallet.write().await;
         wallet
             .insert_keypair(
                 "faucet".to_string(),
