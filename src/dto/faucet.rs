@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use data_encoding::HEXLOWER;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
@@ -53,5 +55,6 @@ pub struct FaucetResponseStatusDto {
 pub struct FaucetSettingResponse {
     pub difficulty: u64,
     pub chain_id: String,
-    pub start_at: i64
+    pub start_at: i64,
+    pub tokens_alias_to_address: HashMap<String, String>
 }

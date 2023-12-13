@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use axum::{extract::State, Json};
 use axum_macros::debug_handler;
 use namada_sdk::{
@@ -22,10 +24,13 @@ use crate::{
 pub async fn faucet_settings(
     State(state): State<FaucetState>,
 ) -> Result<Json<FaucetSettingResponse>, ApiError> {
+    let nam_token_address = rpc::query_native_token(state.sdk.client()).await.unwrap();
+
     let response = FaucetSettingResponse {
         difficulty: state.difficulty,
         chain_id: state.chain_id,
         start_at: state.chain_start,
+        tokens_alias_to_address: HashMap::from([("NAM".to_string(), nam_token_address.to_string())])
     };
 
     Ok(Json(response))
