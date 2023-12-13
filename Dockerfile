@@ -8,7 +8,7 @@ COPY . /app
 WORKDIR /app
 
 # install protoc
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes protobuf-compiler libprotobuf-dev
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes protobuf-compiler libprotobuf-dev ca-certificates
 
 # build app
 RUN cargo build --release
