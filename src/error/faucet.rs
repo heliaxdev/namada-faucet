@@ -19,6 +19,8 @@ pub enum FaucetError {
     ChainNotStarted,
     #[error("Error while sending transfer: {0}")]
     SdkError(String),
+    #[error("Withdraw limit must be less then {0}")]
+    InvalidWithdrawLimit(u64)
 }
 
 impl IntoResponse for FaucetError {
@@ -29,6 +31,7 @@ impl IntoResponse for FaucetError {
             FaucetError::DuplicateChallenge => StatusCode::CONFLICT,
             FaucetError::InvalidAddress => StatusCode::BAD_REQUEST,
             FaucetError::ChainNotStarted => StatusCode::BAD_REQUEST,
+            FaucetError::InvalidWithdrawLimit(_) => StatusCode::BAD_REQUEST,
             FaucetError::SdkError(_) => StatusCode::BAD_REQUEST,
         };
 

@@ -60,6 +60,7 @@ impl ApplicationServer {
         let chain_id = config.chain_id.clone();
         let rpc = config.rpc.clone();
         let chain_start = config.chain_start;
+        let withdraw_limit = config.withdraw_limit.unwrap_or(1000_u64);
 
         let sk = config.private_key.clone();
         let sk = sk_from_str(&sk);
@@ -114,6 +115,7 @@ impl ApplicationServer {
                 difficulty,
                 chain_id,
                 chain_start,
+                withdraw_limit
             );
 
             Router::new()

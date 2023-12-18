@@ -28,6 +28,9 @@ pub struct AppConfig {
     pub rpc: String,
 
     #[clap(long, env)]
+    pub withdraw_limit: Option<u64>,
+
+    #[clap(long, env)]
     pub auth_key: Option<String>,
 
     #[clap(long, env)]

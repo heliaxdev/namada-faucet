@@ -30,6 +30,7 @@ pub async fn faucet_settings(
         difficulty: state.difficulty,
         chain_id: state.chain_id,
         start_at: state.chain_start,
+        withdraw_limit: state.withdraw_limit,
         tokens_alias_to_address: HashMap::from([("NAM".to_string(), nam_token_address.to_string())])
     };
 
@@ -54,6 +55,10 @@ pub async fn request_transfer(
     ValidatedRequest(payload): ValidatedRequest<FaucetRequestDto>,
 ) -> Result<Json<FaucetResponseStatusDto>, ApiError> {
     let auth_key: String = state.auth_key.clone();
+
+    if payload.transfer.amount > state.withdraw_limit {
+        return Err(FaucetError::InvalidWithdrawLimit(state.withdraw_limit).into())
+    }
 
     let token_address = Address::decode(payload.transfer.token.clone());
     let token_address = if let Ok(address) = token_address {

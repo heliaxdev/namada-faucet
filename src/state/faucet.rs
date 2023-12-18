@@ -21,6 +21,7 @@ pub struct FaucetState {
     pub difficulty: u64,
     pub chain_id: String,
     pub chain_start: i64,
+    pub withdraw_limit: u64
 }
 
 impl FaucetState {
@@ -32,6 +33,7 @@ impl FaucetState {
         difficulty: u64,
         chain_id: String,
         chain_start: i64,
+        withdraw_limit: u64
     ) -> Self {
         Self {
             faucet_service: FaucetService::new(data),
@@ -42,6 +44,7 @@ impl FaucetState {
             difficulty,
             chain_id,
             chain_start,
+            withdraw_limit: withdraw_limit * 10_u64.pow(6)
         }
     }
 }
