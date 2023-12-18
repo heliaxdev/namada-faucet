@@ -5,7 +5,7 @@ use std::{
     time::Duration,
 };
 
-use tokio::sync::RwLock;
+use tokio::{sync::RwLock, time::sleep};
 
 use axum::{
     error_handling::HandleErrorLayer,
@@ -65,6 +65,16 @@ impl ApplicationServer {
         let sk = sk_from_str(&sk);
         let pk = sk.ref_to();
         let address = Address::from(&pk);
+
+        loop {
+            let current_timestamp = chrono::offset::Utc::now().timestamp();
+            if current_timestamp > chain_start {
+                break;
+            } else {
+                tracing::info!("Sleeping until: {}", current_timestamp);
+                sleep(Duration::from_secs(60)).await;
+            }
+        };
 
         let url = Url::from_str(&rpc).expect("invalid RPC address");
         let http_client = HttpClient::new(url).unwrap();
