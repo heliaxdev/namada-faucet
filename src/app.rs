@@ -72,7 +72,7 @@ impl ApplicationServer {
             if current_timestamp > chain_start {
                 break;
             } else {
-                tracing::info!("Sleeping until: {}", current_timestamp);
+                tracing::info!("Sleeping until: {}", chain_start);
                 sleep(Duration::from_secs(60)).await;
             }
         };
