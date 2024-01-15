@@ -111,6 +111,8 @@ pub async fn request_transfer(
         InputAmount::Unvalidated(denominated_amount),
     );
 
+    transfer_tx_builder.tx.memo = Some("Transfer from faucet".to_string().as_bytes().to_vec());
+
     let (mut transfer_tx, signing_data, _epoch) = transfer_tx_builder
         .build(&*state.sdk)
         .await
