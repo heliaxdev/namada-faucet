@@ -6,8 +6,8 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use namada_sdk::{
-    core::types::address::Address, io::NullIo, masp::fs::FsShieldedUtils,
-    wallet::fs::FsWalletUtils, NamadaImpl,
+    io::NullIo, masp::fs::FsShieldedUtils, types::address::Address, wallet::fs::FsWalletUtils,
+    NamadaImpl,
 };
 use tendermint_rpc::HttpClient;
 
@@ -21,7 +21,7 @@ pub struct FaucetState {
     pub difficulty: u64,
     pub chain_id: String,
     pub chain_start: i64,
-    pub withdraw_limit: u64
+    pub withdraw_limit: u64,
 }
 
 impl FaucetState {
@@ -33,7 +33,7 @@ impl FaucetState {
         difficulty: u64,
         chain_id: String,
         chain_start: i64,
-        withdraw_limit: u64
+        withdraw_limit: u64,
     ) -> Self {
         Self {
             faucet_service: FaucetService::new(data),
@@ -44,7 +44,7 @@ impl FaucetState {
             difficulty,
             chain_id,
             chain_start,
-            withdraw_limit: withdraw_limit * 10_u64.pow(6)
+            withdraw_limit: withdraw_limit * 10_u64.pow(6),
         }
     }
 }

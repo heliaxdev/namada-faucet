@@ -17,9 +17,9 @@ use axum::{
 use lazy_static::lazy_static;
 use namada_sdk::{
     args::TxBuilder,
-    core::types::{address::Address, chain::ChainId, key::RefTo},
     io::NullIo,
     masp::fs::FsShieldedUtils,
+    types::{address::Address, chain::ChainId, key::RefTo},
     wallet::fs::FsWalletUtils,
     NamadaImpl,
 };
@@ -75,7 +75,7 @@ impl ApplicationServer {
                 tracing::info!("Sleeping until: {}", chain_start);
                 sleep(Duration::from_secs(60)).await;
             }
-        };
+        }
 
         let url = Url::from_str(&rpc).expect("invalid RPC address");
         let http_client = HttpClient::new(url).unwrap();
@@ -116,7 +116,7 @@ impl ApplicationServer {
                 difficulty,
                 chain_id,
                 chain_start,
-                withdraw_limit
+                withdraw_limit,
             );
 
             Router::new()

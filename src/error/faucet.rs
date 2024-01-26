@@ -20,7 +20,7 @@ pub enum FaucetError {
     #[error("Error while sending transfer: {0}")]
     SdkError(String),
     #[error("Withdraw limit must be less then {0}")]
-    InvalidWithdrawLimit(u64)
+    InvalidWithdrawLimit(u64),
 }
 
 impl IntoResponse for FaucetError {

@@ -4,19 +4,21 @@ use axum::{extract::State, Json};
 use axum_macros::debug_handler;
 use namada_sdk::{
     args::InputAmount,
-    core::types::{
-        address::Address,
-        masp::{TransferSource, TransferTarget},
-    },
     rpc,
     signing::default_sign,
     tendermint::abci::Code,
+    tx::data::ResultCode,
+    types::{
+        address::Address,
+        masp::{TransferSource, TransferTarget},
+    },
     Namada,
-    core::types::transaction::ResultCode
 };
 
 use crate::{
-    dto::faucet::{FaucetRequestDto, FaucetResponseDto, FaucetResponseStatusDto, FaucetSettingResponse},
+    dto::faucet::{
+        FaucetRequestDto, FaucetResponseDto, FaucetResponseStatusDto, FaucetSettingResponse,
+    },
     error::{api::ApiError, faucet::FaucetError, validate::ValidatedRequest},
     repository::faucet::FaucetRepositoryTrait,
     state::faucet::FaucetState,
@@ -32,7 +34,10 @@ pub async fn faucet_settings(
         chain_id: state.chain_id,
         start_at: state.chain_start,
         withdraw_limit: state.withdraw_limit,
-        tokens_alias_to_address: HashMap::from([("NAM".to_string(), nam_token_address.to_string())])
+        tokens_alias_to_address: HashMap::from([(
+            "NAM".to_string(),
+            nam_token_address.to_string(),
+        )]),
     };
 
     Ok(Json(response))
@@ -58,7 +63,7 @@ pub async fn request_transfer(
     let auth_key: String = state.auth_key.clone();
 
     if payload.transfer.amount > state.withdraw_limit {
-        return Err(FaucetError::InvalidWithdrawLimit(state.withdraw_limit).into())
+        return Err(FaucetError::InvalidWithdrawLimit(state.withdraw_limit).into());
     }
 
     let token_address = Address::decode(payload.transfer.token.clone());
@@ -133,7 +138,9 @@ pub async fn request_transfer(
 
     let (transfer_result, tx_hash) = if let Ok(response) = process_tx_response {
         match response {
-            namada_sdk::tx::ProcessTxResponse::Applied(r) => (r.code.eq(&ResultCode::Ok), Some(r.hash)),
+            namada_sdk::tx::ProcessTxResponse::Applied(r) => {
+                (r.code.eq(&ResultCode::Ok), Some(r.hash))
+            }
             namada_sdk::tx::ProcessTxResponse::Broadcast(r) => {
                 (r.code.eq(&Code::Ok), Some(r.hash.to_string()))
             }
