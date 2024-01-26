@@ -104,6 +104,7 @@ impl ApplicationServer {
                 None,
             )
             .unwrap();
+
         drop(wallet);
 
         let routes = {
