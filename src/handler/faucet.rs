@@ -82,7 +82,6 @@ pub async fn request_transfer(
     if state.faucet_repo.contains(&payload.challenge).await {
         return Err(FaucetError::DuplicateChallenge.into());
     }
-
     let is_valid_proof =
         state
             .faucet_service
@@ -100,6 +99,16 @@ pub async fn request_transfer(
     }
 
     let faucet_address = state.faucet_address.clone();
+
+    if let Ok(balance) =
+        rpc::get_token_balance(state.sdk.client(), &token_address, &faucet_address).await
+    {
+        if balance < payload.transfer.amount.into() {
+            return Err(FaucetError::FaucetOutOfBalance.into());
+        }
+    } else {
+        return Err(FaucetError::SdkError("Can't query faucet balance".to_string()).into());
+    }
 
     let denominated_amount = rpc::denominate_amount(
         state.sdk.client(),
