@@ -1,7 +1,10 @@
 use std::collections::HashMap;
+use std::time::Instant;
 
+use axum::extract::Path;
 use axum::{extract::State, Json};
 use axum_macros::debug_handler;
+use namada_sdk::types::string_encoding::Format;
 use namada_sdk::{
     args::InputAmount,
     rpc,
@@ -10,6 +13,7 @@ use namada_sdk::{
     tx::data::ResultCode,
     types::{
         address::Address,
+        key::{common, SigScheme},
         masp::{TransferSource, TransferTarget},
     },
     Namada,
@@ -45,10 +49,39 @@ pub async fn faucet_settings(
 
 pub async fn request_challenge(
     State(mut state): State<FaucetState>,
+    Path(player_id): Path<String>,
 ) -> Result<Json<FaucetResponseDto>, ApiError> {
+    let is_player = match reqwest::get(format!(
+        "https://{}/api/v1/player/exists/{}",
+        state.webserver_host, player_id
+    ))
+    .await
+    .map(|response| response.status().is_success())
+    {
+        Ok(is_success) if is_success => true,
+        _ => false,
+    };
+    if !is_player {
+        return Err(FaucetError::NotPlayer(player_id).into());
+    }
+
+    let now = Instant::now();
+    let too_many_requests = 'result: {
+        let Some(last_request_instant) = state.last_requests.get(&player_id) else {
+            break 'result false;
+        };
+        let elapsed_request_time = now.duration_since(*last_request_instant);
+        elapsed_request_time <= state.request_frequency
+    };
+
+    if too_many_requests {
+        return Err(FaucetError::TooManyRequests.into());
+    }
+    state.last_requests.insert(player_id.clone(), now);
+
     let faucet_request = state
         .faucet_service
-        .generate_faucet_request(state.auth_key)
+        .generate_faucet_request(state.auth_key, player_id)
         .await?;
     let response = FaucetResponseDto::from(faucet_request);
 
@@ -64,6 +97,34 @@ pub async fn request_transfer(
 
     if payload.transfer.amount > state.withdraw_limit {
         return Err(FaucetError::InvalidWithdrawLimit(state.withdraw_limit).into());
+    }
+
+    let player_id_pk: common::PublicKey = if let Ok(pk) = payload.player_id.parse() {
+        pk
+    } else {
+        return Err(FaucetError::InvalidPublicKey.into());
+    };
+
+    let challenge_signature = if let Ok(hex_decoded_sig) = hex::decode(payload.challenge_signature)
+    {
+        if let Ok(sig) = common::Signature::decode_bytes(&hex_decoded_sig) {
+            sig
+        } else {
+            return Err(FaucetError::InvalidSignature.into());
+        }
+    } else {
+        return Err(FaucetError::InvalidSignature.into());
+    };
+
+    if common::SigScheme::verify_signature(
+        &player_id_pk,
+        // NOTE: signing over the hex encoded challenge data
+        &payload.challenge.as_bytes(),
+        &challenge_signature,
+    )
+    .is_err()
+    {
+        return Err(FaucetError::InvalidSignature.into());
     }
 
     let token_address = Address::decode(payload.transfer.token.clone());
@@ -82,10 +143,13 @@ pub async fn request_transfer(
     if state.faucet_repo.contains(&payload.challenge).await {
         return Err(FaucetError::DuplicateChallenge.into());
     }
-    let is_valid_proof =
-        state
-            .faucet_service
-            .verify_tag(&auth_key, &payload.challenge, &payload.tag);
+
+    let is_valid_proof = state.faucet_service.verify_tag(
+        &auth_key,
+        &payload.challenge,
+        &payload.player_id,
+        &payload.tag,
+    );
     if !is_valid_proof {
         return Err(FaucetError::InvalidProof.into());
     }

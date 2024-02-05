@@ -28,22 +28,34 @@ impl FaucetService {
         }
     }
 
-    pub async fn generate_faucet_request(&mut self, auth_key: String) -> Result<Faucet, ApiError> {
+    pub async fn generate_faucet_request(
+        &mut self,
+        auth_key: String,
+        player_id: String,
+    ) -> Result<Faucet, ApiError> {
         let challenge = self.r.generate();
-        let tag = self.compute_tag(&auth_key, &challenge);
+        let tag = self.compute_tag(&auth_key, &challenge, player_id.as_bytes());
 
         Ok(Faucet::request(challenge, tag))
     }
 
-    fn compute_tag(&self, auth_key: &String, challenge: &[u8]) -> Vec<u8> {
+    fn compute_tag(&self, auth_key: &String, challenge: &[u8], player_id: &[u8]) -> Vec<u8> {
         let key = auth::SecretKey::from_slice(auth_key.as_bytes())
             .expect("Should be able to convert key to bytes");
-        let tag = auth::authenticate(&key, challenge).expect("Should be able to compute tag");
+        let challenge_and_player_id: Vec<_> = [challenge, player_id].concat();
+        let tag = auth::authenticate(&key, &challenge_and_player_id)
+            .expect("Should be able to compute tag");
 
         tag.unprotected_as_bytes().to_vec()
     }
 
-    pub fn verify_tag(&self, auth_key: &String, challenge: &String, tag: &String) -> bool {
+    pub fn verify_tag(
+        &self,
+        auth_key: &String,
+        challenge: &String,
+        player_id: &String,
+        tag: &String,
+    ) -> bool {
         let key = auth::SecretKey::from_slice(auth_key.as_bytes())
             .expect("Should be able to convert key to bytes");
 
@@ -62,9 +74,12 @@ impl FaucetService {
 
         let tag = Tag::from_slice(&decoded_tag).expect("Should be able to convert bytes to tag");
 
-        let decoded_challenge = HEXLOWER.decode(challenge.as_bytes()).expect("Test");
+        let Ok(decoded_challenge) = HEXLOWER.decode(challenge.as_bytes()) else {
+            return false;
+        };
+        let challenge_and_player_id = [&decoded_challenge[..], player_id.as_bytes()].concat();
 
-        auth::authenticate_verify(&tag, &key, &decoded_challenge).is_ok()
+        auth::authenticate_verify(&tag, &key, &challenge_and_player_id).is_ok()
     }
 
     pub fn verify_pow(&self, challenge: &String, solution: &String, difficulty: u64) -> bool {

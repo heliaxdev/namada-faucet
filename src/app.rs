@@ -55,12 +55,13 @@ impl ApplicationServer {
 
         assert!(auth_key.len() == 32);
 
-        let difficulty = config.difficulty;
         let rps = config.rps;
         let chain_id = config.chain_id.clone();
         let rpc = config.rpc.clone();
         let chain_start = config.chain_start;
-        let withdraw_limit = config.withdraw_limit.unwrap_or(1000_u64);
+        let withdraw_limit = config.withdraw_limit.unwrap_or(1_000_000_000_u64);
+        let webserver_host = config.webserver_host.clone();
+        let request_frequency = config.request_frequency;
 
         let sk = config.private_key.clone();
         let sk = sk_from_str(&sk);
@@ -113,15 +114,16 @@ impl ApplicationServer {
                 address,
                 sdk,
                 auth_key,
-                difficulty,
                 chain_id,
                 chain_start,
                 withdraw_limit,
+                webserver_host,
+                request_frequency,
             );
 
             Router::new()
                 .route("/faucet/setting", get(faucet_handler::faucet_settings))
-                .route("/faucet", get(faucet_handler::request_challenge))
+                .route("/faucet/challenge/:player_id", get(faucet_handler::request_challenge))
                 .route("/faucet", post(faucet_handler::request_transfer))
                 .with_state(faucet_state)
                 .merge(Router::new().route(
