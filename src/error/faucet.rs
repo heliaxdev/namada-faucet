@@ -15,6 +15,10 @@ pub enum FaucetError {
     DuplicateChallenge,
     #[error("Invalid Address")]
     InvalidAddress,
+    #[error("Invalid public key")]
+    InvalidPublicKey,
+    #[error("Invalid signature")]
+    InvalidSignature,
     #[error("Chain didn't start yet")]
     ChainNotStarted,
     #[error("Faucet out of balance")]
@@ -23,6 +27,10 @@ pub enum FaucetError {
     SdkError(String),
     #[error("Withdraw limit must be less then {0}")]
     InvalidWithdrawLimit(u64),
+    #[error("Public key {0} does not belong to a shielded expedition player")]
+    NotPlayer(String),
+    #[error("Slow down, space cowboy")]
+    TooManyRequests,
 }
 
 impl IntoResponse for FaucetError {
@@ -36,6 +44,10 @@ impl IntoResponse for FaucetError {
             FaucetError::InvalidWithdrawLimit(_) => StatusCode::BAD_REQUEST,
             FaucetError::FaucetOutOfBalance => StatusCode::CONFLICT,
             FaucetError::SdkError(_) => StatusCode::BAD_REQUEST,
+            FaucetError::NotPlayer(_) => StatusCode::BAD_REQUEST,
+            FaucetError::TooManyRequests => StatusCode::BAD_REQUEST,
+            FaucetError::InvalidPublicKey => StatusCode::BAD_REQUEST,
+            FaucetError::InvalidSignature => StatusCode::BAD_REQUEST,
         };
 
         ApiErrorResponse::send(status_code.as_u16(), Some(self.to_string()))

@@ -15,6 +15,10 @@ pub struct FaucetRequestDto {
     #[validate(length(equal = 64, message = "Invalid proof"))]
     pub tag: String,
     pub transfer: Transfer,
+    #[validate(length(max = 256, message = "Invalid player id"))]
+    pub player_id: String,
+    #[validate(length(max = 256, message = "Invalid challenge signature"))]
+    pub challenge_signature: String,
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate)]
