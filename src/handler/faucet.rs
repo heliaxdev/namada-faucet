@@ -18,6 +18,7 @@ use namada_sdk::{
     },
     Namada,
 };
+use reqwest::header::USER_AGENT;
 
 use crate::{
     dto::faucet::{
@@ -51,13 +52,16 @@ pub async fn request_challenge(
     State(mut state): State<FaucetState>,
     Path(player_id): Path<String>,
 ) -> Result<Json<FaucetResponseDto>, ApiError> {
-    let is_player = match reqwest::get(format!(
-        "https://{}/api/v1/player/exists/{}",
-        state.webserver_host, player_id
-    ))
-    .await
-    .map(|response| response.status().is_success())
-    {
+    let client = reqwest::Client::new();
+    let req = client
+        .get(format!(
+            "https://{}/api/v1/player/exists/{}",
+            state.webserver_host, player_id
+        ))
+        .header(USER_AGENT, "Mozilla/5.0 (X11; CrOS x86_64 8172.45.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.64 Safari/537.36")
+        .send()
+        .await;
+    let is_player = match req.map(|response| response.status().is_success()) {
         Ok(is_success) if is_success => true,
         _ => false,
     };
