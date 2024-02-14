@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use crate::{
@@ -28,7 +28,7 @@ pub struct FaucetState {
     pub chain_start: i64,
     pub withdraw_limit: u64,
     pub request_frequency: Duration,
-    pub last_requests: HashMap<PlayerId, Instant>,
+    pub last_requests: Arc<Mutex<HashMap<PlayerId, Instant>>>,
     pub webserver_host: String,
 }
 
@@ -57,7 +57,7 @@ impl FaucetState {
             withdraw_limit,
             webserver_host,
             request_frequency: Duration::from_secs(request_frequency),
-            last_requests: HashMap::new(),
+            last_requests: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 }

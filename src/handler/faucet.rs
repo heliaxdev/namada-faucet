@@ -70,20 +70,23 @@ pub async fn request_challenge(
         return Err(FaucetError::NotPlayer(player_id).into());
     }
 
-    let now = Instant::now();
-    let too_many_requests = 'result: {
-        let Some(last_request_instant) = state.last_requests.get(&player_id) else {
-            break 'result false;
+    {
+        let mut last_requests = state.last_requests.lock().unwrap();
+        let now = Instant::now();
+        let too_many_requests = 'result: {
+            let Some(last_request_instant) = last_requests.get(&player_id) else {
+                break 'result false;
+            };
+            let elapsed_request_time = now.duration_since(*last_request_instant);
+            elapsed_request_time <= state.request_frequency
         };
-        let elapsed_request_time = now.duration_since(*last_request_instant);
-        elapsed_request_time <= state.request_frequency
-    };
 
-    if too_many_requests {
-        tracing::info!("Challenge request from {}, was not accepted (too many reqs)", player_id);
-        return Err(FaucetError::TooManyRequests.into());
+        if too_many_requests {
+            tracing::info!("Challenge request from {}, was not accepted (too many reqs)", player_id);
+            return Err(FaucetError::TooManyRequests.into());
+        }
+        last_requests.insert(player_id.clone(), now);
     }
-    state.last_requests.insert(player_id.clone(), now);
 
     tracing::info!("Challenge request from {}, was accepted", player_id);
 
