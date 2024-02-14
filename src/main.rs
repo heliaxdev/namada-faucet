@@ -13,7 +13,7 @@ async fn main() -> anyhow::Result<()> {
     let db = Arc::new(RwLock::new(AppState::default()));
 
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
+        .with_max_level(tracing::Level::DEBUG)
         .init();
 
     ApplicationServer::serve(config, db)
