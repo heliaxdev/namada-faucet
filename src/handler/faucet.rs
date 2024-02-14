@@ -52,7 +52,7 @@ pub async fn request_challenge(
     State(mut state): State<FaucetState>,
     Path(player_id): Path<String>,
 ) -> Result<Json<FaucetResponseDto>, ApiError> {
-    tracing::info!("Challenge request from {}",player_id);
+    tracing::info!("Challenge request from {}", player_id);
     let client = reqwest::Client::new();
     let req = client
         .get(format!(
@@ -79,7 +79,10 @@ pub async fn request_challenge(
         };
 
         if too_many_requests {
-            tracing::info!("Challenge request from {}, was not accepted (too many reqs)", player_id);
+            tracing::info!(
+                "Challenge request from {}, was not accepted (too many reqs)",
+                player_id
+            );
             return Err(FaucetError::TooManyRequests.into());
         }
         last_requests.insert(player_id.clone(), now);
@@ -101,7 +104,11 @@ pub async fn request_transfer(
     State(mut state): State<FaucetState>,
     ValidatedRequest(payload): ValidatedRequest<FaucetRequestDto>,
 ) -> Result<Json<FaucetResponseStatusDto>, ApiError> {
-    tracing::info!("Faucet request from {} is asking for {}", payload.player_id, payload.transfer.amount);
+    tracing::info!(
+        "Faucet request from {} is asking for {}",
+        payload.player_id,
+        payload.transfer.amount
+    );
 
     let auth_key: String = state.auth_key.clone();
 
@@ -234,7 +241,11 @@ pub async fn request_transfer(
     };
 
     if transfer_result {
-        tracing::info!("Faucet request from {} for {} was succesful", payload.player_id, payload.transfer.amount);
+        tracing::info!(
+            "Faucet request from {} for {} was succesful",
+            payload.player_id,
+            payload.transfer.amount
+        );
         state.faucet_repo.add(payload.challenge.clone()).await;
     }
 
