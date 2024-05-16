@@ -1,7 +1,7 @@
 use namada_sdk::{
     io::NullIo,
     masp::{fs::FsShieldedUtils, ShieldedContext},
-    types::key::common::SecretKey,
+    key::common::SecretKey,
     wallet::{fs::FsWalletUtils, Wallet},
     NamadaImpl,
 };

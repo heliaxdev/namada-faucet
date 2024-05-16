@@ -6,7 +6,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use namada_sdk::{
-    io::NullIo, masp::fs::FsShieldedUtils, types::address::Address, wallet::fs::FsWalletUtils,
+    io::NullIo, masp::fs::FsShieldedUtils, address::Address, wallet::fs::FsWalletUtils,
     NamadaImpl,
 };
 use tendermint_rpc::HttpClient;

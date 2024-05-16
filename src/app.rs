@@ -19,7 +19,7 @@ use namada_sdk::{
     args::TxBuilder,
     io::NullIo,
     masp::fs::FsShieldedUtils,
-    types::{address::Address, chain::ChainId, key::RefTo},
+    address::Address, chain::ChainId, key::RefTo,
     wallet::fs::FsWalletUtils,
     NamadaImpl,
 };

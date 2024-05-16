@@ -8,10 +8,8 @@ use namada_sdk::{
     signing::default_sign,
     tendermint::abci::Code,
     tx::data::ResultCode,
-    types::{
-        address::Address,
-        masp::{TransferSource, TransferTarget},
-    },
+    address::Address,
+    masp::{TransferSource, TransferTarget},
     Namada,
 };
 
@@ -148,7 +146,7 @@ pub async fn request_transfer(
     let (transfer_result, tx_hash) = if let Ok(response) = process_tx_response {
         match response {
             namada_sdk::tx::ProcessTxResponse::Applied(r) => {
-                (r.code.eq(&ResultCode::Ok), Some(r.hash))
+                (r.code.eq(&ResultCode::Ok), Some(r.hash.to_string()))
             }
             namada_sdk::tx::ProcessTxResponse::Broadcast(r) => {
                 (r.code.eq(&Code::Ok), Some(r.hash.to_string()))
