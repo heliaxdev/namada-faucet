@@ -37,7 +37,7 @@ rand = "0.8.5"
 rand_chacha = "0.3.1"
 dotenvy = "0.15.7"
 hex = "0.4.3"
-namada_sdk = { git = "https://github.com/anoma/namada", tag = "v0.37.0", default-features = false, features = ["tendermint-rpc", "std", "async-client", "async-send", "download-params", "rand"] }
+namada_sdk = { git = "https://github.com/anoma/namada", tag = "v0.38.1", default-features = false, features = ["tendermint-rpc", "std", "async-client", "async-send", "download-params", "rand"] }
 #tendermint-config = "0.34.0"
 #tendermint-rpc = { version = "0.34.0", features = ["http-client"]}
 tendermint = {version = "0.36.0", features = ["secp256k1"]}

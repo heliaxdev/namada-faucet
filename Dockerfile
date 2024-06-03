@@ -19,7 +19,7 @@ FROM debian:bullseye-slim
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes ca-certificates
 
 # copy the runtime files
-COPY --from=builder /app/target/release/namada-faucet /app/server 
+COPY --from=builder /app/target/release/namada-faucet /app/server
 WORKDIR /app
 
 # start the dart server
