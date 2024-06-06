@@ -15,7 +15,7 @@ use namada_sdk::{
 
 use crate::{
     dto::faucet::{
-        FaucetRequestDto, FaucetResponseDto, FaucetResponseStatusDto, FaucetSettingResponse,
+        self, FaucetRequestDto, FaucetResponseDto, FaucetResponseStatusDto, FaucetSettingResponse
     },
     error::{api::ApiError, faucet::FaucetError, validate::ValidatedRequest},
     repository::faucet::FaucetRepositoryTrait,
@@ -116,16 +116,16 @@ pub async fn request_transfer(
     )
     .await;
 
-    let mut transfer_tx_builder = state.sdk.new_transfer(
-        TransferSource::Address(faucet_address),
-        TransferTarget::Address(target_address),
+    let mut transfer_tx_builder = state.sdk.new_transparent_transfer(
+        faucet_address,
+        target_address,
         token_address.clone(),
         InputAmount::Unvalidated(denominated_amount),
     );
 
     transfer_tx_builder.tx.memo = Some("Transfer from faucet".to_string().as_bytes().to_vec());
 
-    let (mut transfer_tx, signing_data, _epoch) = transfer_tx_builder
+    let (mut transfer_tx, signing_data) = transfer_tx_builder
         .build(&*state.sdk)
         .await
         .expect("unable to build transfer");
