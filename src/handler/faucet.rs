@@ -3,19 +3,13 @@ use std::collections::HashMap;
 use axum::{extract::State, Json};
 use axum_macros::debug_handler;
 use namada_sdk::{
-    args::InputAmount,
-    rpc,
-    signing::default_sign,
-    tendermint::abci::Code,
-    tx::data::ResultCode,
-    address::Address,
-    masp::{TransferSource, TransferTarget},
-    Namada,
+    address::Address, args::InputAmount, rpc, signing::default_sign, tendermint::abci::Code,
+    tx::data::ResultCode, Namada,
 };
 
 use crate::{
     dto::faucet::{
-        self, FaucetRequestDto, FaucetResponseDto, FaucetResponseStatusDto, FaucetSettingResponse
+        FaucetRequestDto, FaucetResponseDto, FaucetResponseStatusDto, FaucetSettingResponse,
     },
     error::{api::ApiError, faucet::FaucetError, validate::ValidatedRequest},
     repository::faucet::FaucetRepositoryTrait,
