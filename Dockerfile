@@ -16,7 +16,7 @@ RUN cargo build --release
 FROM debian:bookworm-slim AS runtime
 WORKDIR /app
 
-RUN apt-get update
+RUN apt-get update && apt-get install -y openssl
 
 COPY --from=builder /app/target/release/namada-faucet /app/server
 
