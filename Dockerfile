@@ -1,26 +1,21 @@
-# use the default dart image as the build image
-FROM rust:1.78 AS builder
+FROM lukemathwalker/cargo-chef:latest-rust-1.78-bookworm AS chef
+RUN apt-get update && apt-get install -y protobuf-compiler build-essential clang-tools-14 
 
-# copy the current folder into the build folder
-COPY . /app
-
-# set the work directory
+FROM chef AS planner
 WORKDIR /app
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
 
-# install protoc
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes protobuf-compiler libprotobuf-dev
-
-# build app
+FROM chef AS builder
+WORKDIR /app
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+COPY . .
 RUN cargo build --release
 
-# use a slim image
-FROM debian:bookworm-slim
-
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes ca-certificates openssl
-
-# copy the runtime files
-COPY --from=builder /app/target/release/namada-faucet /app/server
+FROM debian:bookworm-slim AS runtime
 WORKDIR /app
 
-# start the dart server
+COPY --from=builder /app/target/release /app/server
+
 CMD ["./server"]
