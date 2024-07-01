@@ -16,6 +16,8 @@ RUN cargo build --release
 FROM debian:bookworm-slim AS runtime
 WORKDIR /app
 
+RUN apt-get update
+
 COPY --from=builder /app/target/release/namada-faucet /app/server
 
 CMD ["./server"]
