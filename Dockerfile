@@ -16,6 +16,6 @@ RUN cargo build --release
 FROM debian:bookworm-slim AS runtime
 WORKDIR /app
 
-COPY --from=builder /app/target/release /app/server
+COPY --from=builder /app/target/release/namada-faucet /app/server
 
 CMD ["./server"]
