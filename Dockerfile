@@ -18,6 +18,12 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y openssl
 
+RUN curl -o /app/masp-spend.params -L https://github.com/anoma/masp-mpc/releases/download/namada-trusted-setup/masp-spend.params\?raw\=true
+RUN curl -o /app/masp-output.params -L https://github.com/anoma/masp-mpc/releases/download/namada-trusted-setup/masp-output.params?raw=true
+RUN curl -o /app/masp-convert.params -L https://github.com/anoma/masp-mpc/releases/download/namada-trusted-setup/masp-convert.params?raw=true
+
+ENV NAMADA_MASP_PARAMS_DIR=/app
+
 COPY --from=builder /app/target/release/namada-faucet /app/server
 
 CMD ["./server"]
