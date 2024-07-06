@@ -6,8 +6,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use namada_sdk::{
-    io::NullIo, masp::fs::FsShieldedUtils, address::Address, wallet::fs::FsWalletUtils,
-    NamadaImpl,
+    address::Address, io::NullIo, masp::fs::FsShieldedUtils, wallet::fs::FsWalletUtils, NamadaImpl,
 };
 use tendermint_rpc::HttpClient;
 
@@ -25,6 +24,7 @@ pub struct FaucetState {
 }
 
 impl FaucetState {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         data: &Arc<RwLock<AppState>>,
         faucet_address: Address,

@@ -16,12 +16,8 @@ use axum::{
 };
 use lazy_static::lazy_static;
 use namada_sdk::{
-    args::TxBuilder,
-    io::NullIo,
-    masp::fs::FsShieldedUtils,
-    address::Address, chain::ChainId, key::RefTo,
-    wallet::fs::FsWalletUtils,
-    NamadaImpl,
+    address::Address, args::TxBuilder, chain::ChainId, io::NullIo, key::RefTo,
+    masp::fs::FsShieldedUtils, wallet::fs::FsWalletUtils, NamadaImpl,
 };
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde_json::json;
@@ -124,10 +120,6 @@ impl ApplicationServer {
                 .route("/faucet", get(faucet_handler::request_challenge))
                 .route("/faucet", post(faucet_handler::request_transfer))
                 .with_state(faucet_state)
-                .merge(Router::new().route(
-                    "/health",
-                    get(|| async { env!("VERGEN_GIT_SHA").to_string() }),
-                ))
         };
 
         let cors = CorsLayer::new()
@@ -135,18 +127,24 @@ impl ApplicationServer {
             .allow_methods(Any)
             .allow_headers(Any);
 
-        let router = Router::new().nest("/api/v1", routes).layer(
-            ServiceBuilder::new()
-                .layer(TraceLayer::new_for_http())
-                .layer(HandleErrorLayer::new(Self::handle_timeout_error))
-                .timeout(Duration::from_secs(*HTTP_TIMEOUT))
-                .layer(cors)
-                .layer(BufferLayer::new(4096))
-                .layer(RateLimitLayer::new(
-                    rps.unwrap_or(*REQ_PER_SEC),
-                    Duration::from_secs(1),
-                )),
-        );
+        let router = Router::new()
+            .nest("/api/v1", routes)
+            .merge(Router::new().route(
+                "/health",
+                get(|| async { env!("VERGEN_GIT_SHA").to_string() }),
+            ))
+            .layer(
+                ServiceBuilder::new()
+                    .layer(TraceLayer::new_for_http())
+                    .layer(HandleErrorLayer::new(Self::handle_timeout_error))
+                    .timeout(Duration::from_secs(*HTTP_TIMEOUT))
+                    .layer(cors)
+                    .layer(BufferLayer::new(4096))
+                    .layer(RateLimitLayer::new(
+                        rps.unwrap_or(*REQ_PER_SEC),
+                        Duration::from_secs(1),
+                    )),
+            );
 
         let router = router.fallback(Self::handle_404);
 
