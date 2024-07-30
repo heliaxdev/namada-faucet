@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use axum::{extract::State, Json};
 use axum_macros::debug_handler;
 use namada_sdk::{
-    address::Address, args::InputAmount, rpc, signing::default_sign, tendermint::abci::Code,
+    address::Address, args::{InputAmount, TxTransparentTransferData}, rpc, signing::default_sign, tendermint::abci::Code,
     tx::data::ResultCode, Namada,
 };
 
@@ -110,12 +110,14 @@ pub async fn request_transfer(
     )
     .await;
 
-    let mut transfer_tx_builder = state.sdk.new_transparent_transfer(
-        faucet_address,
-        target_address,
-        token_address.clone(),
-        InputAmount::Unvalidated(denominated_amount),
-    );
+    let transfer = TxTransparentTransferData { 
+        source: faucet_address, 
+        target: target_address, 
+        token: token_address.clone(), 
+        amount: InputAmount::Unvalidated(denominated_amount)
+    };
+
+    let mut transfer_tx_builder = state.sdk.new_transparent_transfer(vec![transfer]);
 
     transfer_tx_builder.tx.memo = Some("Transfer from faucet".to_string().as_bytes().to_vec());
 
