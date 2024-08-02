@@ -1,6 +1,7 @@
 from requests import get, post
 from hashlib import sha256
 import argparse
+import json
 
 DEFAULT_URL = "http://0.0.0.0:5000/api/v1/faucet"
 
@@ -52,5 +53,4 @@ if __name__ == '__main__':
         }
     })
 
-    print(response.content)
-    # print(response.json())
+    print(json.dumps(response.json(), indent=2))
