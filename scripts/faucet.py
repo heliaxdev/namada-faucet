@@ -31,25 +31,26 @@ def compute_pow_solution(challenge, difficulty):
         i += 1
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Request from an amount of token from faucet.')
-    parser.add_argument('url', action='store', type=str, required=False, default=DEFAULT_URL, help='The faucet url.')
-    parser.add_argument('token', action='store', type=int, required=False, help='The token address.')
-    parser.add_argument('amount', action='store', type=int, required=False, default=1000, help='The token amount.')
-    parser.add_argument('target', action='store', type=str, required=True, help='The target address.')
+    parser = argparse.ArgumentParser(description='Request an amount of token from faucet.')
+    parser.add_argument('url', action='store', type=str, default=DEFAULT_URL, help='The faucet url.')
+    parser.add_argument('token', action='store', type=str, help='The token address.')
+    parser.add_argument('amount', action='store', type=int, default=1000, help='The token amount.')
+    parser.add_argument('target', action='store', type=str, help='The target address.')
 
     args = parser.parse_args()
 
     response = request_challenge(args.url)
-    solution = compute_pow_solution(args.url, response['challenge'], 2)
-    response = request_transfer({
+    solution = compute_pow_solution(response['challenge'], 2)
+    response = request_transfer(args.url, {
         'solution': solution,
         'tag': response['tag'],
         'challenge': response['challenge'],
         'transfer': {
             'target': args.target,
             'token': args.token,
-            'amount': args.amounr * 10**6
+            'amount': args.amount * 10**6
         }
     })
 
-    print(response.json())
+    print(response.content)
+    # print(response.json())
