@@ -1,5 +1,5 @@
 build:
-    cacrgo build
+    cargo build
 
 build-release:
     cargo build --release
