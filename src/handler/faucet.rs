@@ -3,8 +3,14 @@ use std::collections::HashMap;
 use axum::{extract::State, Json};
 use axum_macros::debug_handler;
 use namada_sdk::{
-    address::Address, args::{InputAmount, TxTransparentTransferData}, rpc, signing::default_sign, tendermint::abci::Code,
-    tx::data::ResultCode, Namada,
+    address::Address,
+    args::{InputAmount, TxTransparentTransferData},
+    io::NullIo,
+    rpc,
+    signing::default_sign,
+    tendermint::abci::Code,
+    tx::data::ResultCode,
+    Namada,
 };
 
 use crate::{
@@ -19,7 +25,9 @@ use crate::{
 pub async fn faucet_settings(
     State(state): State<FaucetState>,
 ) -> Result<Json<FaucetSettingResponse>, ApiError> {
-    let nam_token_address = rpc::query_native_token(state.sdk.client()).await.unwrap();
+    let nam_token_address = rpc::query_native_token(&state.sdk.clone_client())
+        .await
+        .unwrap();
 
     let response = FaucetSettingResponse {
         difficulty: state.difficulty,
@@ -53,6 +61,7 @@ pub async fn request_transfer(
     ValidatedRequest(payload): ValidatedRequest<FaucetRequestDto>,
 ) -> Result<Json<FaucetResponseStatusDto>, ApiError> {
     let auth_key: String = state.auth_key.clone();
+    let client = state.sdk.clone_client();
 
     if payload.transfer.amount > state.withdraw_limit {
         return Err(FaucetError::InvalidWithdrawLimit(state.withdraw_limit).into());
@@ -93,7 +102,7 @@ pub async fn request_transfer(
     let faucet_address = state.faucet_address.clone();
 
     if let Ok(balance) =
-        rpc::get_token_balance(state.sdk.client(), &token_address, &faucet_address).await
+        rpc::get_token_balance(&client, &token_address, &faucet_address, None).await
     {
         if balance < payload.transfer.amount.into() {
             return Err(FaucetError::FaucetOutOfBalance.into());
@@ -103,18 +112,18 @@ pub async fn request_transfer(
     }
 
     let denominated_amount = rpc::denominate_amount(
-        state.sdk.client(),
-        state.sdk.io(),
+        &client,
+        &NullIo,
         &token_address,
         payload.transfer.amount.into(),
     )
     .await;
 
-    let transfer = TxTransparentTransferData { 
-        source: faucet_address, 
-        target: target_address, 
-        token: token_address.clone(), 
-        amount: InputAmount::Unvalidated(denominated_amount)
+    let transfer = TxTransparentTransferData {
+        source: faucet_address,
+        target: target_address,
+        token: token_address.clone(),
+        amount: InputAmount::Unvalidated(denominated_amount),
     };
 
     let mut transfer_tx_builder = state.sdk.new_transparent_transfer(vec![transfer]);

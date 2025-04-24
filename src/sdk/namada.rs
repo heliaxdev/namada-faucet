@@ -22,7 +22,7 @@ impl Sdk {
     ) -> Self {
         Self {
             faucet_sk,
-            namada_impl: NamadaImpl::new(rpc_client, wallet, shielded_ctx, io)
+            namada_impl: NamadaImpl::new(rpc_client, wallet, shielded_ctx.into(), io)
                 .await
                 .unwrap(),
         }
