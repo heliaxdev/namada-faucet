@@ -9,6 +9,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - 'v*'
   pull_request:
     branches: 
       - master
@@ -61,7 +63,7 @@ jobs:
         with:
           context: .
           file: Dockerfile
-          push: ${{ github.ref == 'refs/heads/master' }}
+          push: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
